@@ -1,8 +1,3 @@
-/**
- * @file apps/client/components/face/WardenFaceVerification.tsx
- * Shared client component for layout renders and user interaction flows.
- */
-
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
@@ -10,7 +5,10 @@ import {
   loadModels,
   getFaceDetection,
   isSamePerson,
+  bestMatchDistance,
   calculateEAR,
+  EAR_BLINK_THRESHOLD,
+  applyEMA,
 } from '@/lib/faceRecognition';
 import { createClient } from '@/lib/supabase/client';
 
@@ -52,17 +50,19 @@ export default function WardenFaceVerification({
   const runningRef = useRef(false); // controls recursive tick loop
   const storedDescriptorsRef = useRef<number[][] | null>(null);
 
+  // EMA smoothed distance
+  const smoothedDistRef = useRef<number>(1.0);
+
   // Attempt tracking
   const failedAttemptsRef = useRef(0);
-  // Mismatch & Liveness Tracking
+  const [failedAttempts, setFailedAttempts] = useState(0);
+
+  // Liveness tracking
   const blinkDetectedRef = useRef(false);
   const faceDetectedRef = useRef(false);
-  const mismatchCountRef = useRef(0);
-  const blinkStageRef = useRef<number>(0); // 0: init, 1: open, 2: closed, 3: verified
-  const openFramesRef = useRef(0);
-  const recentPositionsRef = useRef<{ x: number; y: number }[]>([]);
-  const microMovementDetectedRef = useRef(false);
-  const baselineEARRef = useRef<number | null>(null);
+  const lastEARRef = useRef<number>(1.0);
+
+
 
   const onVerifiedRef = useRef(onVerified);
   const onFailedRef = useRef(onFailed);
@@ -74,7 +74,9 @@ export default function WardenFaceVerification({
   });
 
   const [status, setStatus] = useState<Status>('loading-models');
+  // const [smoothedDist, setSmoothedDist] = useState<number | null>(null);
   const [blinkDetected, setBlinkDetected] = useState(false);
+  // const [showBlinkPrompt, setShowBlinkPrompt] = useState(true);
   const [faceDetected, setFaceDetected] = useState(false);
 
   const stopCamera = useCallback(() => {
@@ -85,27 +87,21 @@ export default function WardenFaceVerification({
     }
   }, []);
 
-  const [failedAttempts, setFailedAttempts] = useState(0);
+
+
+
 
   const startVerificationLoop = useCallback(() => {
     runningRef.current = true;
-    mismatchCountRef.current = 0;
-    blinkStageRef.current = 0;
-    openFramesRef.current = 0;
-    recentPositionsRef.current = [];
-    microMovementDetectedRef.current = false;
-    baselineEARRef.current = null;
-    blinkDetectedRef.current = false;
-    setBlinkDetected(false);
     
-    // Fail if eye blink is not detected within 10 seconds
+    // Fail if no blink is detected within 10 seconds
     setTimeout(() => {
       if (runningRef.current && !blinkDetectedRef.current) {
         runningRef.current = false;
         stopCamera();
         setStatus('liveness-failed');
         if (onFailedRef.current) {
-          onFailedRef.current('Liveness verification failed. Eye blink timed out.');
+          onFailedRef.current('Liveness check timed out. Please try again.');
         }
       }
     }, 10000);
@@ -129,94 +125,53 @@ export default function WardenFaceVerification({
           }
           const { descriptor, landmarks } = detection;
 
-          // ── 1. Face Match & Rejection for Non-Matching Face ──────────────
+          // ── Face match FIRST ───────────────────────────────────────────
           if (!storedDescriptorsRef.current) {return;}
           const { match } = isSamePerson(descriptor, storedDescriptorsRef.current);
           
           if (!match) {
-            mismatchCountRef.current += 1;
             failedAttemptsRef.current += 1;
             setFailedAttempts(failedAttemptsRef.current);
-
-            // Rejects non-matching face after 10 frames (~1.5s grace period for camera exposure/autofocus)
-            if (mismatchCountRef.current >= 10 || failedAttemptsRef.current >= MAX_ATTEMPTS) {
+            if (failedAttemptsRef.current >= MAX_ATTEMPTS) {
               runningRef.current = false;
               stopCamera();
-              setStatus('failed');
-              if (onFailedRef.current) {
-                onFailedRef.current('Face not recognized. Access denied.');
-              }
+              setStatus('max-attempts');
+              onFailedRef.current('Identity could not be verified. Access denied.');
               return;
             } else {
               setStatus('scanning');
-              return;
-            }
-          } else {
-            mismatchCountRef.current = 0;
-          }
-
-          // ── 2. Micro-movement & Landmark Shift Detection ─────────────
-          const noseTip = landmarks.positions[30];
-          if (noseTip) {
-            recentPositionsRef.current.push({ x: noseTip.x, y: noseTip.y });
-            if (recentPositionsRef.current.length > 10) {
-              recentPositionsRef.current.shift();
-            }
-
-            if (recentPositionsRef.current.length >= 2) {
-              let totalDelta = 0;
-              for (let i = 1; i < recentPositionsRef.current.length; i++) {
-                const prev = recentPositionsRef.current[i - 1];
-                const curr = recentPositionsRef.current[i];
-                totalDelta += Math.sqrt((curr.x - prev.x) ** 2 + (curr.y - prev.y) ** 2);
-              }
-              if (totalDelta >= 0.05) {
-                microMovementDetectedRef.current = true;
-              }
+              return; // skip liveness checks for a non-matching face
             }
           }
 
-          // ── 3. Dynamic Eye Blink State Machine (Open -> Closed -> Re-open) ──
+          // ── EMA distance smoothing ───────────────────────────────────────
+          const rawDist = bestMatchDistance(descriptor, storedDescriptorsRef.current);
+          smoothedDistRef.current = applyEMA(smoothedDistRef.current, rawDist);
+          // setSmoothedDist(smoothedDistRef.current);
+
+          // ── Blink detection ──────────────────────────────────────────────
           const ear = calculateEAR(landmarks);
-
-          if (baselineEARRef.current === null && ear >= 0.18) {
-            baselineEARRef.current = ear;
-          } else if (baselineEARRef.current !== null && ear > baselineEARRef.current) {
-            baselineEARRef.current = 0.8 * baselineEARRef.current + 0.2 * ear;
-          }
-
-          const targetBaseline = baselineEARRef.current ?? 0.26;
-          const closeCutoff = targetBaseline * 0.78;
-
-          if (blinkStageRef.current === 0) {
-            if (ear >= targetBaseline * 0.85) {
-              openFramesRef.current += 1;
-              if (openFramesRef.current >= 1) {
-                blinkStageRef.current = 1; // Open confirmed
-              }
-            }
-          } else if (blinkStageRef.current === 1) {
-            if (ear <= closeCutoff) {
-              blinkStageRef.current = 2; // Closed
-            }
-          } else if (blinkStageRef.current === 2) {
-            if (ear >= targetBaseline * 0.85) {
-              // ── Instant Redirect on First Blink! ───────────────────────
-              blinkStageRef.current = 3;
+          if (!blinkDetectedRef.current) {
+            if (lastEARRef.current >= EAR_BLINK_THRESHOLD && ear < EAR_BLINK_THRESHOLD) {
               blinkDetectedRef.current = true;
               setBlinkDetected(true);
-              runningRef.current = false;
-              stopCamera();
-              setStatus('verified');
-              if (onVerifiedRef.current) {
-                onVerifiedRef.current();
-              }
-              return;
             }
           }
+          lastEARRef.current = ear;
 
-          // ── 4. Prompt state while waiting for blink ───────────────────────
-          setStatus('verifying');
+
+          // ── Gate 1: Blink mandatory ──────────────────────────────────────
+          if (!blinkDetectedRef.current) {
+            setStatus('verifying'); // Waiting for blink
+          } else {
+
+            // All clear!
+            runningRef.current = false;
+            stopCamera();
+            setStatus('verified');
+            onVerifiedRef.current(); // Redirect immediately
+            return;
+          }
         }
       } catch {
         setStatus('scanning');
@@ -309,13 +264,14 @@ export default function WardenFaceVerification({
         if (
           msg.toLowerCase().includes('permission') ||
           msg.toLowerCase().includes('denied') ||
-          msg.toLowerCase().includes('notallowed')
+          msg.toLowerCase().includes('notallowed') ||
+          msg.toLowerCase().includes('not found')
         ) {
           setStatus('camera-denied');
         } else {
           setStatus('error');
           // eslint-disable-next-line no-console
-          console.error(msg);
+          console.warn(msg);
         }
       }
     };
@@ -390,6 +346,36 @@ export default function WardenFaceVerification({
             onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(167,139,250,0.15)'; }}
           >
             Continue to dashboard →
+          </button>
+        </div>
+      )}
+
+      {/* Camera Error / Missing Prompt */}
+      {(status === 'camera-denied' || status === 'error') && (
+        <div style={{
+          position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center', background: '#080810', zIndex: 5, gap: '16px', padding: '32px',
+        }}>
+          <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.75"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ fontSize: '15px', fontWeight: 500, color: 'rgba(255,255,255,0.9)', margin: '0 0 6px' }}>Camera unavailable</p>
+            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, margin: 0 }}>
+              We couldn't access your camera.<br />Please connect a webcam or check your permissions.
+            </p>
+          </div>
+          <button
+            onClick={() => onSkipRef.current()}
+            style={{
+              marginTop: '8px', padding: '9px 22px', borderRadius: '10px', fontSize: '13px', fontWeight: 500,
+              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff',
+              cursor: 'pointer', transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+          >
+            Skip for now →
           </button>
         </div>
       )}
@@ -508,10 +494,10 @@ export default function WardenFaceVerification({
       {/* Scanning frame corner overlays */}
       {showVideo && !isVerified && (
         <>
-          <div style={{ position: 'absolute', top: '16px', left: '16px', width: '24px', height: '24px', borderTop: '3.5px solid rgba(131,75,241,0.95)', borderLeft: '3.5px solid rgba(131,75,241,0.95)', borderRadius: '4px 0 0 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
-          <div style={{ position: 'absolute', top: '16px', right: '16px', width: '24px', height: '24px', borderTop: '3.5px solid rgba(131,75,241,0.95)', borderRight: '3.5px solid rgba(131,75,241,0.95)', borderRadius: '0 4px 0 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
-          <div style={{ position: 'absolute', bottom: '16px', left: '16px', width: '24px', height: '24px', borderBottom: '3.5px solid rgba(131,75,241,0.95)', borderLeft: '3.5px solid rgba(131,75,241,0.95)', borderRadius: '0 0 0 4px', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
-          <div style={{ position: 'absolute', bottom: '16px', right: '16px', width: '24px', height: '24px', borderBottom: '3.5px solid rgba(131,75,241,0.95)', borderRight: '3.5px solid rgba(131,75,241,0.95)', borderRadius: '0 0 4px 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', top: '16px', left: '16px', width: '24px', height: '24px', borderBottom: '3.5px solid rgba(131,75,241,0.95)', borderRight: '3.5px solid rgba(131,75,241,0.95)', borderRadius: '0 0 4px 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', top: '16px', right: '16px', width: '24px', height: '24px', borderBottom: '3.5px solid rgba(131,75,241,0.95)', borderLeft: '3.5px solid rgba(131,75,241,0.95)', borderRadius: '0 0 0 4px', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', bottom: '16px', left: '16px', width: '24px', height: '24px', borderTop: '3.5px solid rgba(131,75,241,0.95)', borderRight: '3.5px solid rgba(131,75,241,0.95)', borderRadius: '0 4px 0 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', bottom: '16px', right: '16px', width: '24px', height: '24px', borderTop: '3.5px solid rgba(131,75,241,0.95)', borderLeft: '3.5px solid rgba(131,75,241,0.95)', borderRadius: '4px 0 0 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
         </>
       )}
 
