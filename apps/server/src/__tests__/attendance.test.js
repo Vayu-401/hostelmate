@@ -111,10 +111,6 @@ describe('Attendance API Integration', () => {
   });
 
   describe('POST /api/attendance/mark', () => {
-    /**
-     * Test: should mark attendance via face_only if not already marked
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should mark attendance via face_only if not already marked', async () => {
       queryResults = [
         { data: null, error: null }, // existing check (not marked)
@@ -131,10 +127,6 @@ describe('Attendance API Integration', () => {
       expect(res.body.success).toBe(true);
     });
 
-    /**
-     * Test: should mark attendance via valid QR
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should mark attendance via valid QR', async () => {
       queryResults = [
         { data: null, error: null }, // existing check
@@ -161,10 +153,6 @@ describe('Attendance API Integration', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should reject if already marked
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject if already marked', async () => {
       queryResults = [
         { data: { id: 1 }, error: null }, // existing check
@@ -173,10 +161,6 @@ describe('Attendance API Integration', () => {
       expect(res.status).toBe(400);
     });
 
-    /**
-     * Test: should reject invalid QR data format
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject invalid QR data format', async () => {
       queryResults = [
         { data: null, error: null }, // existing check
@@ -187,10 +171,6 @@ describe('Attendance API Integration', () => {
       expect(res.status).toBe(400);
     });
 
-    /**
-     * Test: should reject invalid QR token
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject invalid QR token', async () => {
       queryResults = [
         { data: null, error: null }, // existing check
@@ -216,10 +196,6 @@ describe('Attendance API Integration', () => {
   });
 
   describe('GET /api/attendance/today', () => {
-    /**
-     * Test: should return attendance for today for warden
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return attendance for today for warden', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: [{ id: 1, status: 'present' }], error: null }];
@@ -228,10 +204,6 @@ describe('Attendance API Integration', () => {
       expect(res.body.data).toHaveLength(1);
     });
 
-    /**
-     * Test: should return from cache if available
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return from cache if available', async () => {
       currentProfile = mockWardenProfile;
       mockRedisGet.mockResolvedValueOnce([{ id: 2, status: 'present' }]);
@@ -242,10 +214,6 @@ describe('Attendance API Integration', () => {
   });
 
   describe('GET /api/attendance/student/:studentId', () => {
-    /**
-     * Test: should return attendance for specific student
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return attendance for specific student', async () => {
       queryResults = [{ data: [{ id: 1, date: '2026-05-31' }], error: null }];
       const res = await request(app).get('/api/v1/attendance/student/student-id');
@@ -253,10 +221,6 @@ describe('Attendance API Integration', () => {
       expect(res.body.data).toHaveLength(1);
     });
 
-    /**
-     * Test: should reject student accessing other student data
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject student accessing other student data', async () => {
       const res = await request(app).get('/api/v1/attendance/student/other-id');
       expect(res.status).toBe(403);
@@ -264,10 +228,6 @@ describe('Attendance API Integration', () => {
   });
 
   describe('GET /api/attendance/stats', () => {
-    /**
-     * Test: should return attendance stats for today
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return attendance stats for today', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [

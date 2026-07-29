@@ -1,11 +1,7 @@
-/**
- * @file apps/client/app/(dashboard)/warden/complaints/page.tsx
- * Warden portal complaints administrative page rendering statistics and actions.
- */
-
 'use client';
+import { Wrench, Bot, Lightbulb } from 'lucide-react';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageShell } from '@/components/ui/PageShell';
 import { Badge } from '@/components/ui/Badge';
@@ -16,7 +12,6 @@ import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
 import { ComplaintWithStudent } from '@/types';
 import { ui, panel, buttonPrimary, buttonGhost, container } from '@/lib/ui';
-import { Wrench, Bot, Lightbulb, Search } from 'lucide-react';
 
 export default function WardenComplaints() {
   const [activeTab, setActiveTab] = useState('All');
@@ -24,7 +19,6 @@ export default function WardenComplaints() {
   const [message, setMessage] = useState('');
   const [page, setPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
   const { apiGet, apiPatch } = useApi();
   const router = useRouter();
@@ -74,23 +68,11 @@ export default function WardenComplaints() {
     return 'warning';
   };
 
-  const filteredComplaints = useMemo(() => {
-    let result = complaints.filter((c) => {
-      if (activeTab === 'All') {return true;}
-      if (activeTab === 'In Progress') {return c.status === 'in_progress';}
-      return c.status.toLowerCase() === activeTab.toLowerCase();
-    });
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (c) =>
-          c.students?.profiles?.full_name?.toLowerCase().includes(q) ||
-          c.description?.toLowerCase().includes(q) ||
-          c.students?.roll_number?.toLowerCase().includes(q)
-      );
-    }
-    return result;
-  }, [complaints, activeTab, searchQuery]);
+  const filteredComplaints = complaints.filter((c) => {
+    if (activeTab === 'All') {return true;}
+    if (activeTab === 'In Progress') {return c.status === 'in_progress';}
+    return c.status.toLowerCase() === activeTab.toLowerCase();
+  });
 
   return (
     <PageShell>
@@ -100,25 +82,6 @@ export default function WardenComplaints() {
         <div style={{ marginBottom: 24 }}>
           <AiAnalysisCard type="complaints" themeColor="#7c5cfc" themeRgb="124,92,252" />
         </div>
-
-        {/* Search */}
-        <div style={{ position: 'relative', marginBottom: '16px' }}>
-          <Search size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }} />
-          <input
-            type="text"
-            placeholder="Search by student name, roll number, or description…"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            aria-label="Search complaints"
-            style={{
-              width: '100%', padding: '8px 12px 8px 34px', borderRadius: '10px',
-              background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)',
-              color: '#ffffff', fontSize: '13px', outline: 'none',
-              transition: 'border-color 0.15s ease', boxSizing: 'border-box'
-            }}
-          />
-        </div>
-
         <div
           style={{
             display: 'flex',

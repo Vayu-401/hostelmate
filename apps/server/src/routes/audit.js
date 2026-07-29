@@ -1,8 +1,3 @@
-/**
- * @file apps/server/src/routes/audit.js
- * Express route handlers managing audit operations and database queries.
- */
-
 import { Router } from 'express';
 import { supabaseAdmin } from '../config/supabase.js';
 import { authenticate } from '../middleware/auth.js';
@@ -10,13 +5,6 @@ import { requireWarden } from '../middleware/rbac.js';
 
 const router = Router();
 
-/**
- * GET /api/v1/audit
- * Retrieves a paginated list of system audit logs.
- * Includes related user profiles through a nested table join, and supports
- * optional filtering by resource category or action type.
- * Restricted to Wardens.
- */
 router.get('/', authenticate, requireWarden, async (req, res, next) => {
   try {
     const { resource, action } = req.query;

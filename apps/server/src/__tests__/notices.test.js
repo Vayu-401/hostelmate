@@ -93,10 +93,6 @@ describe('Notices API', () => {
   });
 
   describe('POST /api/notices - Warden posts', () => {
-    /**
-     * Test: should reject notice with short title
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject notice with short title', async () => {
       const res = await request(app).post('/api/v1/notices').send({
         title: 'ab',
@@ -106,10 +102,6 @@ describe('Notices API', () => {
       expect(res.status).toBe(400);
     });
 
-    /**
-     * Test: should reject invalid target_audience
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject invalid target_audience', async () => {
       const res = await request(app).post('/api/v1/notices').send({
         title: 'valid title',
@@ -119,10 +111,6 @@ describe('Notices API', () => {
       expect(res.status).toBe(400);
     });
 
-    /**
-     * Test: should accept valid notice
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should accept valid notice', async () => {
       // Return notice data on insert
       supabaseMock.single.mockResolvedValueOnce({ data: { id: '1' }, error: null });
@@ -138,10 +126,6 @@ describe('Notices API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should return 403 for student
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 403 for student', async () => {
       currentProfile = mockStudentProfile;
       const res = await request(app).post('/api/v1/notices').send({
@@ -152,10 +136,6 @@ describe('Notices API', () => {
       expect(res.status).toBe(403);
     });
 
-    /**
-     * Test: should accept notice targeting students
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should accept notice targeting students', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.single.mockResolvedValueOnce({ data: { id: '2' }, error: null });
@@ -168,10 +148,6 @@ describe('Notices API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should accept notice targeting parents
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should accept notice targeting parents', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.single.mockResolvedValueOnce({ data: { id: '3' }, error: null });
@@ -186,10 +162,6 @@ describe('Notices API', () => {
   });
 
   describe('GET /api/notices - Any authenticated user', () => {
-    /**
-     * Test: should return notices for student (filtered)
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return notices for student (filtered)', async () => {
       currentProfile = mockStudentProfile;
       supabaseMock.limit.mockResolvedValueOnce({ data: [], error: null });
@@ -197,20 +169,12 @@ describe('Notices API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should return all notices for warden
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return all notices for warden', async () => {
       supabaseMock.limit.mockResolvedValueOnce({ data: [], error: null });
       const res = await request(app).get('/api/v1/notices');
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should return notices for parent (filtered)
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return notices for parent (filtered)', async () => {
       currentProfile = { id: 'parent-id', role: 'parent', email: 'parent@test.com' };
       supabaseMock.limit.mockResolvedValueOnce({ data: [], error: null });
@@ -218,10 +182,6 @@ describe('Notices API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should return 401 without auth
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 401 without auth', async () => {
       currentProfile = null;
       const res = await request(app).get('/api/v1/notices');

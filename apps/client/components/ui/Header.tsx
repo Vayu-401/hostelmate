@@ -1,8 +1,3 @@
-/**
- * @file apps/client/components/ui/Header.tsx
- * Shared client component for layout renders and user interaction flows.
- */
-
 'use client';
 
 import { useState } from 'react';

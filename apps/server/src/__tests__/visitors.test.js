@@ -63,7 +63,6 @@ jest.unstable_mockModule('../config/socket.js', () => ({
 
 jest.unstable_mockModule('../config/notify.js', () => ({
   createNotification: jest.fn().mockResolvedValue(true),
-  notifyWardens: jest.fn().mockResolvedValue(true),
 }));
 
 const mockWardenProfile = {
@@ -118,10 +117,6 @@ describe('Visitors API', () => {
   });
 
   describe('POST /api/visitors — Student submits', () => {
-    /**
-     * Test: should reject missing visitor_name
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject missing visitor_name', async () => {
       const res = await request(app).post('/api/v1/visitors').send({
         visitor_phone: '1234567890',
@@ -132,10 +127,6 @@ describe('Visitors API', () => {
       expect(res.status).toBe(400);
     });
 
-    /**
-     * Test: should reject phone shorter than 10 digits
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject phone shorter than 10 digits', async () => {
       const res = await request(app).post('/api/v1/visitors').send({
         visitor_name: 'John Doe',
@@ -147,10 +138,6 @@ describe('Visitors API', () => {
       expect(res.status).toBe(400);
     });
 
-    /**
-     * Test: should reject purpose shorter than 10 chars
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject purpose shorter than 10 chars', async () => {
       const res = await request(app).post('/api/v1/visitors').send({
         visitor_name: 'John Doe',
@@ -162,10 +149,6 @@ describe('Visitors API', () => {
       expect(res.status).toBe(400);
     });
 
-    /**
-     * Test: should reject invalid relationship
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject invalid relationship', async () => {
       const res = await request(app).post('/api/v1/visitors').send({
         visitor_name: 'John Doe',
@@ -177,10 +160,6 @@ describe('Visitors API', () => {
       expect(res.status).toBe(400);
     });
 
-    /**
-     * Test: should reject past expected_visit_date
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject past expected_visit_date', async () => {
       const res = await request(app)
         .post('/api/v1/visitors')
@@ -194,10 +173,6 @@ describe('Visitors API', () => {
       expect(res.status).toBe(400);
     });
 
-    /**
-     * Test: should accept valid visitor request
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should accept valid visitor request', async () => {
       queryResults = [
         { data: { id: 'visitor-1', status: 'pending' }, error: null },
@@ -217,10 +192,6 @@ describe('Visitors API', () => {
       expect(res.body.success).toBe(true);
     });
 
-    /**
-     * Test: should return 403 for warden role
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 403 for warden role', async () => {
       currentProfile = mockWardenProfile;
       const res = await request(app).post('/api/v1/visitors').send({
@@ -233,10 +204,6 @@ describe('Visitors API', () => {
       expect(res.status).toBe(403);
     });
 
-    /**
-     * Test: should return 401 without auth
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 401 without auth', async () => {
       authEnabled = false;
       const res = await request(app).post('/api/v1/visitors').send({
@@ -251,10 +218,6 @@ describe('Visitors API', () => {
   });
 
   describe('GET /api/visitors/my — Student views own', () => {
-    /**
-     * Test: should return student own visitor requests
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return student own visitor requests', async () => {
       queryResults = [{ data: [{ id: 'visitor-1', visitor_name: 'John Doe' }], error: null }];
       const res = await request(app).get('/api/v1/visitors/my');
@@ -262,10 +225,6 @@ describe('Visitors API', () => {
       expect(res.body.data).toHaveLength(1);
     });
 
-    /**
-     * Test: should return empty array if none
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return empty array if none', async () => {
       queryResults = [{ data: [], error: null }];
       const res = await request(app).get('/api/v1/visitors/my');
@@ -273,10 +232,6 @@ describe('Visitors API', () => {
       expect(res.body.data).toEqual([]);
     });
 
-    /**
-     * Test: should respect the limit query parameter for student visitors
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should respect the limit query parameter for student visitors', async () => {
       queryResults = [{ data: [], error: null }];
       const res = await request(app).get('/api/v1/visitors/my?limit=5');
@@ -284,10 +239,6 @@ describe('Visitors API', () => {
       expect(supabaseMock.limit).toHaveBeenCalledWith(5);
     });
 
-    /**
-     * Test: should return 401 without auth
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 401 without auth', async () => {
       authEnabled = false;
       const res = await request(app).get('/api/v1/visitors/my');
@@ -296,10 +247,6 @@ describe('Visitors API', () => {
   });
 
   describe('GET /api/visitors — Warden views all', () => {
-    /**
-     * Test: should return all visitor requests
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return all visitor requests', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: [{ id: 'visitor-1' }, { id: 'visitor-2' }], error: null }];
@@ -308,10 +255,6 @@ describe('Visitors API', () => {
       expect(res.body.data).toHaveLength(2);
     });
 
-    /**
-     * Test: should filter by status query param
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should filter by status query param', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: [{ id: 'visitor-1', status: 'pending' }], error: null }];
@@ -319,10 +262,6 @@ describe('Visitors API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should filter by date query param
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should filter by date query param', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: [{ id: 'visitor-1' }], error: null }];
@@ -330,10 +269,6 @@ describe('Visitors API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should return 403 for student
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 403 for student', async () => {
       currentProfile = mockStudentProfile;
       const res = await request(app).get('/api/v1/visitors');
@@ -342,10 +277,6 @@ describe('Visitors API', () => {
   });
 
   describe('PATCH /api/visitors/:id/approve — Warden approves', () => {
-    /**
-     * Test: should approve visitor request
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should approve visitor request', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [
@@ -356,10 +287,6 @@ describe('Visitors API', () => {
       expect(res.body.success).toBe(true);
     });
 
-    /**
-     * Test: should accept optional warden_notes
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should accept optional warden_notes', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: { id: 'visitor-1', student_id: 'student-id' }, error: null }];
@@ -370,10 +297,6 @@ describe('Visitors API', () => {
       expect(res.body.success).toBe(true);
     });
 
-    /**
-     * Test: should return 403 for student
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 403 for student', async () => {
       currentProfile = mockStudentProfile;
       const res = await request(app).patch('/api/v1/visitors/visitor-1/approve');
@@ -382,10 +305,6 @@ describe('Visitors API', () => {
   });
 
   describe('PATCH /api/visitors/:id/reject — Warden rejects', () => {
-    /**
-     * Test: should reject visitor request
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject visitor request', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: { id: 'visitor-1', student_id: 'student-id' }, error: null }];
@@ -394,10 +313,6 @@ describe('Visitors API', () => {
       expect(res.body.success).toBe(true);
     });
 
-    /**
-     * Test: should return 403 for student
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 403 for student', async () => {
       currentProfile = mockStudentProfile;
       const res = await request(app).patch('/api/v1/visitors/visitor-1/reject');
@@ -406,10 +321,6 @@ describe('Visitors API', () => {
   });
 
   describe('PATCH /api/visitors/:id/checkin — Warden checks in', () => {
-    /**
-     * Test: should set status to checked_in with check_in_time
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should set status to checked_in with check_in_time', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [
@@ -421,10 +332,6 @@ describe('Visitors API', () => {
       expect(res.body.success).toBe(true);
     });
 
-    /**
-     * Test: should return 403 for student
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 403 for student', async () => {
       currentProfile = mockStudentProfile;
       const res = await request(app).patch('/api/v1/visitors/visitor-1/checkin');
@@ -433,10 +340,6 @@ describe('Visitors API', () => {
   });
 
   describe('PATCH /api/visitors/:id/checkout — Warden checks out', () => {
-    /**
-     * Test: should set status to checked_out with check_out_time
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should set status to checked_out with check_out_time', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [
@@ -448,10 +351,6 @@ describe('Visitors API', () => {
       expect(res.body.success).toBe(true);
     });
 
-    /**
-     * Test: should return 403 for student
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 403 for student', async () => {
       currentProfile = mockStudentProfile;
       const res = await request(app).patch('/api/v1/visitors/visitor-1/checkout');

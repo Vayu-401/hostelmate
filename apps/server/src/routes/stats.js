@@ -1,8 +1,3 @@
-/**
- * @file apps/server/src/routes/stats.js
- * Express route handlers managing stats operations and database queries.
- */
-
 import { Router } from 'express';
 import { supabaseAdmin } from '../config/supabase.js';
 import { authenticate } from '../middleware/auth.js';
@@ -12,12 +7,6 @@ import logger from '../config/logger.js';
 
 const router = Router();
 
-/**
- * GET /api/v1/stats/dashboard
- * Aggregates statistics for the Warden Dashboard.
- * Fetches attendance rate, pending leaves, unresolved complaints, active notices,
- * and room occupancy in parallel. Caches the result in Redis ('stats:dashboard') for 5 minutes.
- */
 router.get('/dashboard', authenticate, requireWarden, async (req, res, next) => {
   try {
     const today = new Date().toISOString().split('T')[0];
@@ -43,7 +32,6 @@ router.get('/dashboard', authenticate, requireWarden, async (req, res, next) => 
       { count: resolvedComplaintsMonth },
       { count: totalActiveNotices },
       { data: lostFoundData },
-      { data: roomsData },
     ] = await Promise.all([
       supabaseAdmin.from('students').select('*', { count: 'exact', head: true }),
       supabaseAdmin
@@ -80,7 +68,6 @@ router.get('/dashboard', authenticate, requireWarden, async (req, res, next) => 
         .gte('resolution_date', startOfMonth),
       supabaseAdmin.from('notices').select('*', { count: 'exact', head: true }),
       supabaseAdmin.from('lost_and_found').select('status'),
-      supabaseAdmin.from('rooms').select('id, capacity'),
     ]);
 
     const total = totalStudents || 0;
@@ -99,11 +86,6 @@ router.get('/dashboard', authenticate, requireWarden, async (req, res, next) => 
         else if (item.status === 'claimed') {totalClaimed++;}
       }
     }
-
-    const totalRooms = roomsData ? roomsData.length : 0;
-    const totalBeds = roomsData ? roomsData.reduce((acc, r) => acc + (r.capacity || 0), 0) : 0;
-    const occupiedBeds = total;
-    const occupancyRate = totalBeds > 0 ? Number(((occupiedBeds / totalBeds) * 100).toFixed(1)) : 0;
 
     const statsData = {
       attendance: {
@@ -129,16 +111,9 @@ router.get('/dashboard', authenticate, requireWarden, async (req, res, next) => 
         total_found: totalFound,
         total_claimed: totalClaimed,
       },
-      rooms: {
-        total_rooms: totalRooms,
-        total_beds: totalBeds,
-        occupied_beds: occupiedBeds,
-        occupancy_rate: occupancyRate,
-      },
     };
 
     await setCache(cacheKey, statsData, 180);
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.json({
       success: true,
       data: statsData,

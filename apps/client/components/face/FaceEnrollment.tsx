@@ -1,8 +1,3 @@
-/**
- * @file apps/client/components/face/FaceEnrollment.tsx
- * Shared client component for layout renders and user interaction flows.
- */
-
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';

@@ -1,8 +1,3 @@
-/**
- * @file apps/client/components/ui/NotificationBell.tsx
- * Shared client component for layout renders and user interaction flows.
- */
-
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -13,18 +8,11 @@ import { useSocket } from '@/hooks/useSocket';
 import { Notification } from '@/types';
 import { toast } from 'sonner';
 import { 
-  Bell, Check, Trash2, X, Search,
+  Bell, Check, Trash2, X, 
   Palmtree, Wrench, Megaphone, Siren, ClipboardCheck,
   CreditCard, UtensilsCrossed, PackageSearch
 } from 'lucide-react';
 
-/**
- * Computes a human-readable relative time string (e.g. '3m ago', '2h ago')
- * from a past ISO date string.
- *
- * @param {string} dateString - Past timestamp in ISO format
- * @returns {string} Relative time difference string
- */
 function timeAgo(dateString: string) {
   const date = new Date(dateString);
   const now = new Date();
@@ -33,7 +21,7 @@ function timeAgo(dateString: string) {
   let interval = Math.floor(seconds / 31536000);
   if (interval >= 1) {return interval + 'y ago';}
   interval = Math.floor(seconds / 2592000);
-  if (interval >= 1) {return interval + 'mths ago';}
+  if (interval >= 1) {return interval + 'mo ago';}
   interval = Math.floor(seconds / 86400);
   if (interval >= 1) {return interval + 'd ago';}
   interval = Math.floor(seconds / 3600);
@@ -43,14 +31,6 @@ function timeAgo(dateString: string) {
   return Math.floor(seconds) + 's ago';
 }
 
-/**
- * Returns a React Lucide icon element configured with custom color
- * and size appropriate for the notification classification category.
- *
- * @param {string} type - Notification category type
- * @param {string} color - SVG stroke color code
- * @returns {React.ReactElement}
- */
 const getIconForType = (type: string, color: string) => {
   const props = { size: 16, color };
   switch (type) {
@@ -81,13 +61,13 @@ const getThemeTokens = (pathname: string) => {
   }
   if (pathname?.startsWith('/parent')) {
     return {
-      primary: '#60a5fa', // Parent Blue (matches dashboard accent)
-      primaryLight: '#bfdbfe',
-      bgGlow: 'rgba(96, 165, 250, 0.15)',
-      border: 'rgba(96, 165, 250, 0.3)',
-      bgSoft: 'rgba(96, 165, 250, 0.08)',
-      bgHover: 'rgba(96, 165, 250, 0.12)',
-      gradient: 'linear-gradient(135deg, rgba(96,165,250,0.2) 0%, rgba(96,165,250,0) 100%)',
+      primary: '#3b82f6', // Blue
+      primaryLight: '#93c5fd',
+      bgGlow: 'rgba(59, 130, 246, 0.15)',
+      border: 'rgba(59, 130, 246, 0.3)',
+      bgSoft: 'rgba(59, 130, 246, 0.08)',
+      bgHover: 'rgba(59, 130, 246, 0.12)',
+      gradient: 'linear-gradient(135deg, rgba(59,130,246,0.2) 0%, rgba(59,130,246,0) 100%)',
     };
   }
   // Default to Warden (Purple)
@@ -113,7 +93,6 @@ export function NotificationBell() {
   const [page, setPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   
   useEffect(() => setMounted(true), []);
 
@@ -401,30 +380,6 @@ export function NotificationBell() {
               </div>
             </div>
 
-            {/* Quick Search Filter */}
-            {notifications.length > 0 && (
-              <div className="px-5 pt-3 pb-1 z-10 shrink-0">
-                <div className="relative flex items-center">
-                  <Search size={14} className="absolute left-3 text-white/30" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search notifications…"
-                    className="w-full bg-white/[0.04] border border-white/10 rounded-xl py-1.5 pl-9 pr-7 text-xs text-white placeholder-white/30 outline-none focus:border-white/25 transition-all"
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery('')}
-                      className="absolute right-2.5 text-white/40 hover:text-white/80"
-                    >
-                      <X size={12} />
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
             {/* Content List */}
             <div className="notif-scrollbar flex-1 overflow-y-auto relative z-10 p-4 space-y-3">
               {loading ? (
@@ -454,27 +409,7 @@ export function NotificationBell() {
                   </p>
                 </div>
               ) : (
-                (() => {
-                  const filtered = notifications.filter((n) => {
-                    if (!searchQuery.trim()) {return true;}
-                    const q = searchQuery.toLowerCase();
-                    return (
-                      n.title?.toLowerCase().includes(q) ||
-                      n.message?.toLowerCase().includes(q) ||
-                      n.type?.toLowerCase().includes(q)
-                    );
-                  });
-
-                  if (filtered.length === 0) {
-                    return (
-                      <div className="flex flex-col items-center justify-center py-12 text-center px-6 opacity-60">
-                        <p className="text-xs font-medium text-white/70">No matching notifications</p>
-                        <p className="text-[11px] text-white/40 mt-1">Try searching for a different keyword</p>
-                      </div>
-                    );
-                  }
-
-                  return filtered.map((notification) => (
+                notifications.map((notification) => (
                   <div
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification.id, notification.is_read)}
@@ -544,8 +479,7 @@ export function NotificationBell() {
                       <Trash2 size={14} />
                     </button>
                   </div>
-                ));
-                })()
+                ))
               )}
 
               {hasNext && !loading && (

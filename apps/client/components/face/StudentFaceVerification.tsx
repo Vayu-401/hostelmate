@@ -1,8 +1,3 @@
-/**
- * @file apps/client/components/face/StudentFaceVerification.tsx
- * Shared client component for layout renders and user interaction flows.
- */
-
 'use client';
 import { AlertTriangle, Camera, Search } from 'lucide-react';
 
@@ -11,7 +6,10 @@ import {
   loadModels,
   getFaceDetection,
   isSamePerson,
+  bestMatchDistance,
   calculateEAR,
+  EAR_BLINK_THRESHOLD,
+  applyEMA,
 } from '@/lib/faceRecognition';
 import { createClient } from '@/lib/supabase/client';
 
@@ -53,19 +51,17 @@ export default function StudentFaceVerification({
   const runningRef = useRef(false); // controls recursive tick loop
   const storedDescriptorsRef = useRef<number[][] | null>(null);
 
+  // EMA smoothed distance
+  const smoothedDistRef = useRef<number>(1.0);
+
   // Attempt tracking
   const failedAttemptsRef = useRef(0);
   const [failedAttempts, setFailedAttempts] = useState(0);
 
-  // Mismatch & Liveness Tracking
+  // Liveness tracking
   const blinkDetectedRef = useRef(false);
   const faceDetectedRef = useRef(false);
-  const mismatchCountRef = useRef(0);
-  const blinkStageRef = useRef<number>(0); // 0: init, 1: open, 2: closed, 3: verified
-  const openFramesRef = useRef(0);
-  const recentPositionsRef = useRef<{ x: number; y: number }[]>([]);
-  const microMovementDetectedRef = useRef(false);
-  const baselineEARRef = useRef<number | null>(null);
+  const lastEARRef = useRef<number>(1.0);
 
   const onVerifiedRef = useRef(onVerified);
   const onFailedRef = useRef(onFailed);
@@ -90,23 +86,15 @@ export default function StudentFaceVerification({
 
   const startVerificationLoop = useCallback(() => {
     runningRef.current = true;
-    mismatchCountRef.current = 0;
-    blinkStageRef.current = 0;
-    openFramesRef.current = 0;
-    recentPositionsRef.current = [];
-    microMovementDetectedRef.current = false;
-    baselineEARRef.current = null;
-    blinkDetectedRef.current = false;
-    setBlinkDetected(false);
 
-    // Fail if eye blink is not detected within 10 seconds
+    // Fail if no blink is detected within 10 seconds
     setTimeout(() => {
       if (runningRef.current && !blinkDetectedRef.current) {
         runningRef.current = false;
         stopCamera();
         setStatus('liveness-failed');
         if (onFailedRef.current) {
-          onFailedRef.current('Liveness verification failed. Eye blink timed out.');
+          onFailedRef.current('Liveness check timed out. Please try again.');
         }
       }
     }, 10000);
@@ -130,94 +118,50 @@ export default function StudentFaceVerification({
           }
           const { descriptor, landmarks } = detection;
 
-          // ── 1. Face Match & Rejection for Non-Matching Face ──────────────
+          // ── Face match FIRST ───────────────────────────────────────────
           if (!storedDescriptorsRef.current) {return;}
           const { match } = isSamePerson(descriptor, storedDescriptorsRef.current);
 
           if (!match) {
-            mismatchCountRef.current += 1;
             failedAttemptsRef.current += 1;
             setFailedAttempts(failedAttemptsRef.current);
-
-            // Rejects non-matching face after 10 frames (~1.5s grace period for camera exposure/autofocus)
-            if (mismatchCountRef.current >= 10 || failedAttemptsRef.current >= MAX_ATTEMPTS) {
+            if (failedAttemptsRef.current >= MAX_ATTEMPTS) {
               runningRef.current = false;
               stopCamera();
               setStatus('max-attempts');
-              if (onFailedRef.current) {
-                onFailedRef.current('Face not recognized. Switching to QR mode.');
-              }
+              onFailedRef.current('Identity could not be verified. Switching to QR mode.');
               return;
             } else {
               setStatus('scanning');
-              return;
-            }
-          } else {
-            mismatchCountRef.current = 0;
-          }
-
-          // ── 2. Micro-movement & Landmark Shift Detection ─────────────
-          const noseTip = landmarks.positions[30];
-          if (noseTip) {
-            recentPositionsRef.current.push({ x: noseTip.x, y: noseTip.y });
-            if (recentPositionsRef.current.length > 10) {
-              recentPositionsRef.current.shift();
-            }
-
-            if (recentPositionsRef.current.length >= 2) {
-              let totalDelta = 0;
-              for (let i = 1; i < recentPositionsRef.current.length; i++) {
-                const prev = recentPositionsRef.current[i - 1];
-                const curr = recentPositionsRef.current[i];
-                totalDelta += Math.sqrt((curr.x - prev.x) ** 2 + (curr.y - prev.y) ** 2);
-              }
-              if (totalDelta >= 0.05) {
-                microMovementDetectedRef.current = true;
-              }
+              return; // skip liveness checks for a non-matching face
             }
           }
 
-          // ── 3. Dynamic Eye Blink State Machine (Open -> Closed -> Re-open) ──
+          // ── EMA distance smoothing ───────────────────────────────────────
+          const rawDist = bestMatchDistance(descriptor, storedDescriptorsRef.current);
+          smoothedDistRef.current = applyEMA(smoothedDistRef.current, rawDist);
+
+          // ── Blink detection ──────────────────────────────────────────────
           const ear = calculateEAR(landmarks);
-
-          if (baselineEARRef.current === null && ear >= 0.18) {
-            baselineEARRef.current = ear;
-          } else if (baselineEARRef.current !== null && ear > baselineEARRef.current) {
-            baselineEARRef.current = 0.8 * baselineEARRef.current + 0.2 * ear;
-          }
-
-          const targetBaseline = baselineEARRef.current ?? 0.26;
-          const closeCutoff = targetBaseline * 0.78;
-
-          if (blinkStageRef.current === 0) {
-            if (ear >= targetBaseline * 0.85) {
-              openFramesRef.current += 1;
-              if (openFramesRef.current >= 1) {
-                blinkStageRef.current = 1; // Open confirmed
-              }
-            }
-          } else if (blinkStageRef.current === 1) {
-            if (ear <= closeCutoff) {
-              blinkStageRef.current = 2; // Closed
-            }
-          } else if (blinkStageRef.current === 2) {
-            if (ear >= targetBaseline * 0.85) {
-              // ── Instant Redirect on First Blink! ───────────────────────
-              blinkStageRef.current = 3;
+          if (!blinkDetectedRef.current) {
+            if (lastEARRef.current >= EAR_BLINK_THRESHOLD && ear < EAR_BLINK_THRESHOLD) {
               blinkDetectedRef.current = true;
               setBlinkDetected(true);
-              runningRef.current = false;
-              stopCamera();
-              setStatus('verified');
-              if (onVerifiedRef.current) {
-                onVerifiedRef.current();
-              }
-              return;
             }
           }
+          lastEARRef.current = ear;
 
-          // ── 4. Prompt state while waiting for blink ───────────────────────
-          setStatus('verifying');
+          // ── Gate 1: Blink mandatory ──────────────────────────────────────
+          if (!blinkDetectedRef.current) {
+            setStatus('verifying'); // Waiting for blink
+          } else {
+            // All clear!
+            runningRef.current = false;
+            stopCamera();
+            setStatus('verified');
+            onVerifiedRef.current();
+            return;
+          }
         }
       } catch {
         setStatus('scanning');
@@ -491,10 +435,10 @@ export default function StudentFaceVerification({
       {/* Scanning frame corner overlays (orange) */}
       {showVideo && !isVerified && (
         <>
-          <div style={{ position: 'absolute', top: '16px', left: '16px', width: '24px', height: '24px', borderTop: `3.5px solid ${ORANGE}`, borderLeft: `3.5px solid ${ORANGE}`, borderRadius: '4px 0 0 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
-          <div style={{ position: 'absolute', top: '16px', right: '16px', width: '24px', height: '24px', borderTop: `3.5px solid ${ORANGE}`, borderRight: `3.5px solid ${ORANGE}`, borderRadius: '0 4px 0 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
-          <div style={{ position: 'absolute', bottom: '16px', left: '16px', width: '24px', height: '24px', borderBottom: `3.5px solid ${ORANGE}`, borderLeft: `3.5px solid ${ORANGE}`, borderRadius: '0 0 0 4px', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
-          <div style={{ position: 'absolute', bottom: '16px', right: '16px', width: '24px', height: '24px', borderBottom: `3.5px solid ${ORANGE}`, borderRight: `3.5px solid ${ORANGE}`, borderRadius: '0 0 4px 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', top: '16px', left: '16px', width: '24px', height: '24px', borderBottom: `3.5px solid ${ORANGE}`, borderRight: `3.5px solid ${ORANGE}`, borderRadius: '0 0 4px 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', top: '16px', right: '16px', width: '24px', height: '24px', borderBottom: `3.5px solid ${ORANGE}`, borderLeft: `3.5px solid ${ORANGE}`, borderRadius: '0 0 0 4px', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', bottom: '16px', left: '16px', width: '24px', height: '24px', borderTop: `3.5px solid ${ORANGE}`, borderRight: `3.5px solid ${ORANGE}`, borderRadius: '0 4px 0 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', bottom: '16px', right: '16px', width: '24px', height: '24px', borderTop: `3.5px solid ${ORANGE}`, borderLeft: `3.5px solid ${ORANGE}`, borderRadius: '4px 0 0 0', animation: 'cornerBreathe 2s ease-in-out infinite' }} />
         </>
       )}
 

@@ -1,8 +1,3 @@
-/**
- * @file apps/server/src/config/institutions.js
- * Server configuration and helper utilities for institutions operations.
- */
-
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';

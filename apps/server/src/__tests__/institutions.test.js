@@ -34,10 +34,6 @@ describe('Institutions API', () => {
   });
 
   describe('GET /api/institutions/search', () => {
-    /**
-     * Test: should return empty results for short query
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return empty results for short query', async () => {
       const res = await request(app).get('/api/v1/institutions/search?q=a');
       expect(res.status).toBe(200);
@@ -45,10 +41,6 @@ describe('Institutions API', () => {
       expect(res.body.results).toEqual([]);
     });
 
-    /**
-     * Test: should return empty results when query parameter is missing
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return empty results when query parameter is missing', async () => {
       const res = await request(app).get('/api/v1/institutions/search');
       expect(res.status).toBe(200);
@@ -56,10 +48,6 @@ describe('Institutions API', () => {
       expect(res.body.results).toEqual([]);
     });
 
-    /**
-     * Test: should return cached results if available
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return cached results if available', async () => {
       const mockCached = [{ name: 'Cached Univ', city: 'Test' }];
       getCache.mockResolvedValueOnce(mockCached);
@@ -70,10 +58,6 @@ describe('Institutions API', () => {
       expect(res.body.metadata.cached).toBe(true);
     });
 
-    /**
-     * Test: should fetch and cache results if not in cache
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should fetch and cache results if not in cache', async () => {
       getCache.mockResolvedValueOnce(null);
       
@@ -90,10 +74,6 @@ describe('Institutions API', () => {
       expect(setCache).toHaveBeenCalled();
     });
 
-    /**
-     * Test: should handle hipolabs api failure gracefully
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should handle hipolabs api failure gracefully', async () => {
       getCache.mockResolvedValueOnce(null);
       
@@ -103,10 +83,6 @@ describe('Institutions API', () => {
       expect(res.status).toBe(200); // Should still succeed, just without hipo supplements
     });
 
-    /**
-     * Test: should handle internal errors gracefully
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should handle internal errors gracefully', async () => {
       getCache.mockRejectedValueOnce(new Error('Redis died'));
 

@@ -1,8 +1,3 @@
-/**
- * @file apps/client/components/ui/AiAssistant.tsx
- * Shared client component for layout renders and user interaction flows.
- */
-
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -133,19 +128,6 @@ export function AiAssistant() {
   }, [isOpen]);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        setIsOpen((prev) => !prev);
-      } else if (e.key === 'Escape' && isOpen) {
-        setIsOpen(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen]);
-
-  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
@@ -199,12 +181,12 @@ export function AiAssistant() {
       <button
         id="ai-assistant-btn"
         onClick={() => setIsOpen(!isOpen)}
-        title={`${persona} (⌘K / Ctrl+K)`}
+        title={persona}
         style={{
-          height: '32px', padding: '0 8px', borderRadius: '16px',
+          width: '32px', height: '32px', borderRadius: '50%',
           background: isOpen ? accentBg : 'transparent',
           border: '1px solid', borderColor: isOpen ? accentBorder : 'transparent',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
           color: isOpen ? accentLight : 'rgba(255,255,255,0.4)',
           cursor: 'pointer', transition: 'all 0.2s',
           position: 'relative',
@@ -225,7 +207,6 @@ export function AiAssistant() {
         }}
       >
         <Sparkles size={15} />
-        <span style={{ fontSize: '10px', fontWeight: 600, opacity: 0.75, padding: '1px 4px', borderRadius: '4px', background: 'rgba(255,255,255,0.08)', letterSpacing: '0.5px' }}>⌘K</span>
       </button>
 
       {isOpen && mounted && createPortal(

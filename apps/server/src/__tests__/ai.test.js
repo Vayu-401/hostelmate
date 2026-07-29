@@ -55,10 +55,6 @@ describe('AI Assistant API', () => {
   });
 
   describe('POST /api/v1/ai/chat', () => {
-    /**
-     * Test: should reject if messages array is missing
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject if messages array is missing', async () => {
       const res = await request(app).post('/api/v1/ai/chat').send({});
       expect(res.status).toBe(400);
@@ -66,10 +62,6 @@ describe('AI Assistant API', () => {
       expect(res.body.error).toBe('Messages array is required');
     });
 
-    /**
-     * Test: should reject if conversation is too long (MAX_MESSAGES)
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject if conversation is too long (MAX_MESSAGES)', async () => {
       const messages = Array(35).fill({ role: 'user', content: 'test' });
       const res = await request(app).post('/api/v1/ai/chat').send({ messages });
@@ -77,10 +69,6 @@ describe('AI Assistant API', () => {
       expect(res.body.error).toMatch(/too long/i);
     });
 
-    /**
-     * Test: should return success for warden role
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return success for warden role', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.then.mockImplementation((resolve) => resolve({ data: [], count: 100, error: null }));
@@ -93,10 +81,6 @@ describe('AI Assistant API', () => {
       expect(processWardenChat).toHaveBeenCalled();
     });
 
-    /**
-     * Test: should return success for student role
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return success for student role', async () => {
       currentProfile = mockStudentProfile;
       supabaseMock.then.mockImplementation((resolve) => resolve({ data: [], count: 0, error: null }));
@@ -109,10 +93,6 @@ describe('AI Assistant API', () => {
       expect(processStudentChat).toHaveBeenCalled();
     });
 
-    /**
-     * Test: should return 403 for unsupported role
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 403 for unsupported role', async () => {
       currentProfile = mockUnknownProfile;
       const res = await request(app).post('/api/v1/ai/chat').send({
@@ -124,20 +104,12 @@ describe('AI Assistant API', () => {
   });
 
   describe('GET /api/v1/ai/analysis/:type', () => {
-    /**
-     * Test: should return 400 for invalid type
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 400 for invalid type', async () => {
       const res = await request(app).get('/api/v1/ai/analysis/invalid_type');
       expect(res.status).toBe(400);
       expect(res.body.error).toBe('Invalid analysis type');
     });
 
-    /**
-     * Test: should return success for warden analyzing complaints
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return success for warden analyzing complaints', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.then.mockImplementationOnce((resolve) => resolve({ data: [{ id: 1 }], error: null }));
@@ -148,10 +120,6 @@ describe('AI Assistant API', () => {
       expect(analyzeGeneric).toHaveBeenCalled();
     });
 
-    /**
-     * Test: should return success for student analyzing leaves
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return success for student analyzing leaves', async () => {
       currentProfile = mockStudentProfile;
       supabaseMock.then.mockImplementationOnce((resolve) => resolve({ data: [{ id: 1 }], error: null }));
@@ -162,10 +130,6 @@ describe('AI Assistant API', () => {
       expect(analyzeGeneric).toHaveBeenCalled();
     });
 
-    /**
-     * Test: should return empty summary when no data is found
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return empty summary when no data is found', async () => {
       currentProfile = mockStudentProfile;
       supabaseMock.then.mockImplementationOnce((resolve) => resolve({ data: [], error: null }));

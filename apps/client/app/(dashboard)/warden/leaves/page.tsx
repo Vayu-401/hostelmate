@@ -1,11 +1,6 @@
-/**
- * @file apps/client/app/(dashboard)/warden/leaves/page.tsx
- * Warden portal leaves administrative page rendering statistics and actions.
- */
-
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageShell } from '@/components/ui/PageShell';
 import { Badge } from '@/components/ui/Badge';
@@ -16,7 +11,7 @@ import { useApi } from '@/hooks/useApi';
 import { useRouter } from 'next/navigation';
 import { LeaveWithStudent } from '@/types';
 import { ui, panel, buttonGhost, container } from '@/lib/ui';
-import { Calendar, Search } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 
 export default function WardenLeaves() {
   const [activeTab, setActiveTab] = useState('All');
@@ -24,7 +19,6 @@ export default function WardenLeaves() {
   const [message, setMessage] = useState('');
   const [page, setPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
   const { apiGet, apiPatch } = useApi();
   const router = useRouter();
@@ -68,29 +62,16 @@ export default function WardenLeaves() {
     router.push('/login');
   };
 
-  const getStatusVariant = (status: string): 'success' | 'danger' | 'warning' | 'orange' => {
+  const getStatusVariant = (status: string) => {
     if (status === 'approved') {return 'success';}
     if (status === 'rejected') {return 'danger';}
-    if (status === 'on_leave') {return 'orange';}
     return 'warning';
   };
 
-  const filteredLeaves = useMemo(() => {
-    let result = leaves.filter((l) => {
-      if (activeTab === 'All') {return true;}
-      return l.status.toLowerCase() === activeTab.toLowerCase();
-    });
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (l) =>
-          l.students?.profiles?.full_name?.toLowerCase().includes(q) ||
-          l.reason?.toLowerCase().includes(q) ||
-          l.students?.roll_number?.toLowerCase().includes(q)
-      );
-    }
-    return result;
-  }, [leaves, activeTab, searchQuery]);
+  const filteredLeaves = leaves.filter((l) => {
+    if (activeTab === 'All') {return true;}
+    return l.status.toLowerCase() === activeTab.toLowerCase();
+  });
 
   return (
     <PageShell>
@@ -117,24 +98,6 @@ export default function WardenLeaves() {
           </div>
         )}
 
-        {/* Search */}
-        <div style={{ position: 'relative', marginBottom: '16px' }}>
-          <Search size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }} />
-          <input
-            type="text"
-            placeholder="Search by student name, roll number, or reason…"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            aria-label="Search leave requests"
-            style={{
-              width: '100%', padding: '8px 12px 8px 34px', borderRadius: '10px',
-              background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)',
-              color: '#ffffff', fontSize: '13px', outline: 'none',
-              transition: 'border-color 0.15s ease', boxSizing: 'border-box'
-            }}
-          />
-        </div>
-
         {/* Tabs */}
         <div
           style={{
@@ -148,10 +111,6 @@ export default function WardenLeaves() {
         >
           {['All', 'Pending', 'Approved', 'Rejected'].map((tab) => {
             const active = activeTab === tab;
-            const count = tab === 'All'
-              ? leaves.length
-              : leaves.filter((l) => l.status?.toLowerCase() === tab.toLowerCase()).length;
-
             return (
               <button
                 key={tab}
@@ -167,9 +126,6 @@ export default function WardenLeaves() {
                   color: active ? ui.text : ui.textMuted,
                   cursor: 'pointer',
                   transition: 'all 0.2s',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
                 }}
                 onMouseEnter={(e) => {
                   if (!active) {e.currentTarget.style.color = ui.textSoft;}
@@ -178,19 +134,7 @@ export default function WardenLeaves() {
                   if (!active) {e.currentTarget.style.color = ui.textMuted;}
                 }}
               >
-                <span>{tab}</span>
-                <span
-                  style={{
-                    fontSize: '11px',
-                    fontWeight: 600,
-                    padding: '2px 7px',
-                    borderRadius: '10px',
-                    background: active ? 'rgba(124,92,252,0.25)' : 'rgba(255,255,255,0.06)',
-                    color: active ? '#a78bfa' : 'rgba(255,255,255,0.4)',
-                  }}
-                >
-                  {count}
-                </span>
+                {tab}
               </button>
             );
           })}

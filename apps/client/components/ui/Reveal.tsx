@@ -1,17 +1,8 @@
-/**
- * @file apps/client/components/ui/Reveal.tsx
- * Shared client component for layout renders and user interaction flows.
- */
-
 'use client';
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 
-/**
- * Props for the Reveal component.
- */
 type RevealProps = {
-  /** The children nodes to animate when scrolling into view */
   children: ReactNode;
   /** Entrance delay in ms — use to stagger siblings (e.g. index * 45). */
   delay?: number;
@@ -23,9 +14,7 @@ type RevealProps = {
   preload?: number;
   /** Re-hide and replay when scrolled back out of view. Default reveals once. */
   replay?: boolean;
-  /** Optional inline CSS styles */
   style?: CSSProperties;
-  /** Optional CSS class name */
   className?: string;
 };
 

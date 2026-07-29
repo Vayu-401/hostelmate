@@ -1,8 +1,3 @@
-/**
- * @file apps/server/src/config/audit.js
- * Server configuration and helper utilities for audit operations.
- */
-
 import { supabaseAdmin } from './supabase.js';
 import logger from './logger.js';
 

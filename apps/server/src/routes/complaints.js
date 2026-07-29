@@ -1,8 +1,3 @@
-/**
- * @file apps/server/src/routes/complaints.js
- * Express route handlers managing complaints operations and database queries.
- */
-
 import { Router } from 'express';
 import { supabaseAdmin } from '../config/supabase.js';
 import { authenticate } from '../middleware/auth.js';
@@ -11,7 +6,7 @@ import { validate } from '../middleware/validate.js';
 import { complaintSchema } from '../config/validation.js';
 import logger from '../config/logger.js';
 import { deleteCache, getCache, setCache } from '../config/redis.js';
-import { createNotification, notifyWardens } from '../config/notify.js';
+import { createNotification } from '../config/notify.js';
 import { auditLog } from '../config/audit.js';
 import { emitToUser } from '../config/socket.js';
 import { classifyComplaint, generateMaintenanceSuggestion } from '../config/openai.js';
@@ -68,15 +63,6 @@ router.post(
       if (error) {throw error;}
 
       logger.info(`Complaint submitted by user ${req.user.id}`);
-
-      const studentName = req.profile?.full_name || 'A student';
-      await notifyWardens(
-        finalUrgency ? 'Urgent Complaint Filed' : 'New Complaint Filed',
-        `${studentName} filed a ${finalCategory} complaint: "${description.slice(0, 50)}${description.length > 50 ? '...' : ''}"`,
-        'complaint',
-        record.id
-      );
-
       await deleteCache('stats:dashboard');
 
       res.json({
@@ -85,9 +71,10 @@ router.post(
         ai: aiResult
           ? {
               classified: true,
-              confidence: aiResult.confidence,
+              category_changed: finalCategory !== category,
+              urgency_changed: finalUrgency !== is_urgent,
               summary: aiSummary,
-              suggested_action: aiSuggestedAction,
+              confidence: aiResult.confidence,
             }
           : { classified: false },
       });

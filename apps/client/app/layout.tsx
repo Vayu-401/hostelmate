@@ -1,8 +1,3 @@
-/**
- * @file apps/client/app/layout.tsx
- * Source code module for HostelMate layout.tsx.
- */
-
 import type { Metadata, Viewport } from 'next';
 import { Toaster } from 'sonner';
 import './globals.css';

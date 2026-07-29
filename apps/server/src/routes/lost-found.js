@@ -1,8 +1,3 @@
-/**
- * @file apps/server/src/routes/lost-found.js
- * Express route handlers managing lost-found operations and database queries.
- */
-
 import { Router } from 'express';
 import { supabaseAdmin } from '../config/supabase.js';
 import { authenticate } from '../middleware/auth.js';
@@ -16,12 +11,6 @@ import { deleteCache } from '../config/redis.js';
 
 const router = Router();
 
-/**
- * POST /api/v1/lost-found
- * Reports a new lost/found item.
- * Runs fuzzy match comparisons using Jaccard similarity against opposite status items
- * and triggers notification matches if similarity threshold is met (>= 0.25).
- */
 router.post(
   '/',
   authenticate,

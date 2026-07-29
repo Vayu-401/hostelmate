@@ -1,8 +1,3 @@
-/**
- * @file apps/client/app/(dashboard)/layout.tsx
- * Source code module for HostelMate layout.tsx.
- */
-
 import { RouteGuard } from '@/components/RouteGuard';
 import { NivoBadge } from '@/components/ui/NivoBadge';
 

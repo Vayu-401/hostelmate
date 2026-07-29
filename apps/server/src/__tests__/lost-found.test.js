@@ -98,10 +98,6 @@ describe('Lost and Found API', () => {
   });
 
   describe('POST /api/lost-found - Student reports', () => {
-    /**
-     * Test: should accept lost item report
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should accept lost item report', async () => {
       console.error('DEBUG DATE IN TEST:', new Date().toISOString());
       supabaseMock.single.mockResolvedValueOnce({
@@ -119,10 +115,6 @@ describe('Lost and Found API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should accept found item report
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should accept found item report', async () => {
       supabaseMock.single.mockResolvedValueOnce({
         data: { id: '2', status: 'found', item_name: 'Wallet' },
@@ -139,10 +131,6 @@ describe('Lost and Found API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should reject missing item_name
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject missing item_name', async () => {
       const res = await request(app).post('/api/v1/lost-found').send({
         status: 'lost',
@@ -156,10 +144,6 @@ describe('Lost and Found API', () => {
       expect(res.status).toBe(400);
     });
 
-    /**
-     * Test: should check for matches after submit
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should check for matches after submit', async () => {
       supabaseMock.single.mockResolvedValueOnce({
         data: { id: '1', status: 'lost', item_name: 'Keys' },
@@ -179,10 +163,6 @@ describe('Lost and Found API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should return match info if found
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return match info if found', async () => {
       supabaseMock.single.mockResolvedValueOnce({
         data: { id: '1', status: 'lost', item_name: 'Keys' },
@@ -205,20 +185,12 @@ describe('Lost and Found API', () => {
   });
 
   describe('GET /api/lost-found', () => {
-    /**
-     * Test: should return all items
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return all items', async () => {
       supabaseMock.range.mockResolvedValueOnce({ data: [], error: null });
       const res = await request(app).get('/api/v1/lost-found');
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should filter by status
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should filter by status', async () => {
       supabaseMock.range.mockResolvedValueOnce({ data: [], error: null });
       const res = await request(app).get('/api/v1/lost-found?status=claimed');
@@ -226,10 +198,6 @@ describe('Lost and Found API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should respect the limit and page query parameters
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should respect the limit and page query parameters', async () => {
       supabaseMock.range.mockResolvedValueOnce({ data: [], error: null });
       const res = await request(app).get('/api/v1/lost-found?limit=15&page=2');
@@ -237,10 +205,6 @@ describe('Lost and Found API', () => {
       expect(supabaseMock.range).toHaveBeenCalledWith(15, 29);
     });
 
-    /**
-     * Test: should return 401 without auth
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 401 without auth', async () => {
       currentProfile = null;
       const res = await request(app).get('/api/v1/lost-found');
@@ -249,10 +213,6 @@ describe('Lost and Found API', () => {
   });
 
   describe('PATCH /api/lost-found/:id/claim', () => {
-    /**
-     * Test: should mark item as claimed
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should mark item as claimed', async () => {
       supabaseMock.single.mockResolvedValueOnce({
         data: { id: '1', status: 'claimed' },
@@ -262,10 +222,6 @@ describe('Lost and Found API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should return 401 without auth
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 401 without auth', async () => {
       currentProfile = null;
       const res = await request(app).patch('/api/v1/lost-found/1/claim');

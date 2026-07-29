@@ -96,19 +96,11 @@ describe('Leaves API', () => {
   });
 
   describe('POST /api/leaves - Student submits leave', () => {
-    /**
-     * Test: should reject leave with missing fields
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject leave with missing fields', async () => {
       const res = await request(app).post('/api/v1/leaves').send({});
       expect(res.status).toBe(400);
     });
 
-    /**
-     * Test: should reject leave with past start_date
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject leave with past start_date', async () => {
       const pastDate = new Date(Date.now() - 86400000).toISOString().split('T')[0];
       const futureDate = new Date(Date.now() + 86400000).toISOString().split('T')[0];
@@ -120,10 +112,6 @@ describe('Leaves API', () => {
       expect(res.status).toBe(400);
     });
 
-    /**
-     * Test: should reject leave with end_date before start_date
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject leave with end_date before start_date', async () => {
       const futureDate1 = new Date(Date.now() + 86400000).toISOString().split('T')[0];
       const futureDate2 = new Date(Date.now() + 172800000).toISOString().split('T')[0];
@@ -135,10 +123,6 @@ describe('Leaves API', () => {
       expect(res.status).toBe(400);
     });
 
-    /**
-     * Test: should reject reason shorter than 20 characters
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject reason shorter than 20 characters', async () => {
       const futureDate1 = new Date(Date.now() + 86400000).toISOString().split('T')[0];
       const futureDate2 = new Date(Date.now() + 172800000).toISOString().split('T')[0];
@@ -150,10 +134,6 @@ describe('Leaves API', () => {
       expect(res.status).toBe(400);
     });
 
-    /**
-     * Test: should accept valid leave request
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should accept valid leave request', async () => {
       const futureDate1 = new Date(Date.now() + 86400000).toISOString().split('T')[0];
       const futureDate2 = new Date(Date.now() + 172800000).toISOString().split('T')[0];
@@ -168,10 +148,6 @@ describe('Leaves API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should return 401 without auth token
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 401 without auth token', async () => {
       currentProfile = null;
       const res = await request(app).post('/api/v1/leaves').send({});
@@ -180,10 +156,6 @@ describe('Leaves API', () => {
   });
 
   describe('GET /api/leaves/my - Student views own leaves', () => {
-    /**
-     * Test: should return student own leaves
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return student own leaves', async () => {
       supabaseMock.order.mockResolvedValueOnce({ data: [{ id: '1' }], error: null });
       const res = await request(app).get('/api/v1/leaves/my');
@@ -191,10 +163,6 @@ describe('Leaves API', () => {
       expect(res.body.data).toEqual([{ id: '1' }]);
     });
 
-    /**
-     * Test: should respect the limit query parameter for student leaves
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should respect the limit query parameter for student leaves', async () => {
       supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
       const res = await request(app).get('/api/v1/leaves/my?limit=5');
@@ -202,10 +170,6 @@ describe('Leaves API', () => {
       expect(supabaseMock.limit).toHaveBeenCalledWith(5);
     });
 
-    /**
-     * Test: should return empty array if no leaves
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return empty array if no leaves', async () => {
       supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
       const res = await request(app).get('/api/v1/leaves/my');
@@ -213,10 +177,6 @@ describe('Leaves API', () => {
       expect(res.body.data).toEqual([]);
     });
 
-    /**
-     * Test: should handle DB errors gracefully
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should handle DB errors gracefully', async () => {
       supabaseMock.order.mockResolvedValueOnce({ data: null, error: new Error('DB error') });
       const res = await request(app).get('/api/v1/leaves/my');
@@ -224,10 +184,6 @@ describe('Leaves API', () => {
       expect(res.body.error).toMatch(/internal/i);
     });
 
-    /**
-     * Test: should return 401 without auth
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 401 without auth', async () => {
       currentProfile = null;
       const res = await request(app).get('/api/v1/leaves/my');
@@ -236,10 +192,6 @@ describe('Leaves API', () => {
   });
 
   describe('GET /api/leaves/all - Warden views all leaves', () => {
-    /**
-     * Test: should return all leave requests for warden
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return all leave requests for warden', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.range.mockResolvedValueOnce({ data: [{ id: '1' }], error: null });
@@ -247,10 +199,6 @@ describe('Leaves API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should return 403 for student role
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 403 for student role', async () => {
       const res = await request(app).get('/api/v1/leaves/all');
       expect(res.status).toBe(403);
@@ -258,10 +206,6 @@ describe('Leaves API', () => {
   });
 
   describe('PATCH /api/leaves/:id/approve - Warden approves', () => {
-    /**
-     * Test: should approve leave and return updated record
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should approve leave and return updated record', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.single.mockResolvedValue({ data: { id: '1', status: 'approved' }, error: null });
@@ -269,19 +213,11 @@ describe('Leaves API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should return 403 for student role
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 403 for student role', async () => {
       const res = await request(app).patch('/api/v1/leaves/1/approve');
       expect(res.status).toBe(403);
     });
 
-    /**
-     * Test: should return 404 for non-existent leave id
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 404 for non-existent leave id', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.single.mockResolvedValue({ data: null, error: null });
@@ -291,10 +227,6 @@ describe('Leaves API', () => {
   });
 
   describe('PATCH /api/leaves/:id/reject - Warden rejects', () => {
-    /**
-     * Test: should reject leave and return updated record
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject leave and return updated record', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.single.mockResolvedValue({ data: { id: '1', status: 'rejected' }, error: null });
@@ -302,10 +234,6 @@ describe('Leaves API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should return 403 for student role
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 403 for student role', async () => {
       const res = await request(app).patch('/api/v1/leaves/1/reject');
       expect(res.status).toBe(403);

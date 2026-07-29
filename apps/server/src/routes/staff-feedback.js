@@ -1,8 +1,3 @@
-/**
- * @file apps/server/src/routes/staff-feedback.js
- * Express route handlers managing staff-feedback operations and database queries.
- */
-
 import { Router } from 'express';
 import { z } from 'zod';
 import { supabaseAdmin } from '../config/supabase.js';
@@ -19,11 +14,7 @@ const staffFeedbackSchema = z.object({
   comment: z.string().optional(),
 });
 
-/**
- * GET /api/v1/staff-feedback
- * Retrieves a list of all staff members decorated with aggregate rating metrics
- * (total reviews, average rating, and current month reviews).
- */
+// GET / — requireWarden
 router.get('/', authenticate, async (req, res, next) => {
   try {
     const { role } = req.query;

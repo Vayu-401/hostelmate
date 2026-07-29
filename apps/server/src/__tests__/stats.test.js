@@ -95,10 +95,6 @@ describe('Stats API', () => {
   });
 
   describe('GET /api/stats/dashboard - Warden', () => {
-    /**
-     * Test: GET /api/v1/stats/dashboard should return dashboard stats
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('GET /api/v1/stats/dashboard should return dashboard stats', async () => {
       queryResults = [
         { count: 100 }, // totalStudents
@@ -120,30 +116,18 @@ describe('Stats API', () => {
       expect(res.body.data.attendance.today_percentage).toBe(90);
     });
 
-    /**
-     * Test: should return 403 for student
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 403 for student', async () => {
       currentProfile = mockStudentProfile;
       const res = await request(app).get('/api/v1/stats/dashboard');
       expect(res.status).toBe(403);
     });
 
-    /**
-     * Test: should return 401 without auth
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 401 without auth', async () => {
       currentProfile = null;
       const res = await request(app).get('/api/v1/stats/dashboard');
       expect(res.status).toBe(401);
     });
 
-    /**
-     * Test: should return cached data if available
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return cached data if available', async () => {
       const { getCache } = await import('../config/redis.js');
       getCache.mockResolvedValueOnce({ attendance: { today_present: 50 } });

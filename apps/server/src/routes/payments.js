@@ -1,8 +1,3 @@
-/**
- * @file apps/server/src/routes/payments.js
- * Express route handlers managing payments operations and database queries.
- */
-
 import { Router } from 'express';
 import { z } from 'zod';
 import { supabaseAdmin } from '../config/supabase.js';
@@ -16,16 +11,10 @@ import logger from '../config/logger.js';
 
 const router = Router();
 
-/**
- * @file routes/payments.js
- * Express routes managing Razorpay order creation, payment signatures verification,
- * transaction histories, receipt generations, and warden fee structure CRUDs.
- */
+// ────────────────────────────────────────────
+// FEE STRUCTURES
+// ────────────────────────────────────────────
 
-/**
- * GET /api/v1/payments/fee-structures
- * Returns all active fee structures grouped by billing period (yearly, monthly, one_time).
- */
 router.get('/fee-structures', authenticate, async (req, res, next) => {
   try {
     const { data, error } = await supabaseAdmin
@@ -59,11 +48,6 @@ const feeStructureSchema = z.object({
   description: z.string().optional(),
 });
 
-/**
- * POST /api/v1/payments/fee-structures
- * Registers a new fee structure configuration details.
- * Restricted to Wardens.
- */
 router.post(
   '/fee-structures',
   authenticate,

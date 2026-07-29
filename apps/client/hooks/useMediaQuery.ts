@@ -1,8 +1,3 @@
-/**
- * @file apps/client/hooks/useMediaQuery.ts
- * Custom React hook managing local state and side effects.
- */
-
 import { useState, useEffect } from 'react';
 
 export function useMediaQuery(query: string): boolean {

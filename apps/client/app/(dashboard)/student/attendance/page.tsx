@@ -1,8 +1,3 @@
-/**
- * @file apps/client/app/(dashboard)/student/attendance/page.tsx
- * Student portal attendance dashboard subpage rendering status and actions.
- */
-
 'use client';
 
 import { useEffect, useState, useCallback, useRef, lazy, Suspense } from 'react';
@@ -135,9 +130,8 @@ export default function StudentAttendance() {
   const fetchHistory = useCallback(async () => {
     if (!profile?.id) {return;}
     try {
-      const ym = new Date().toISOString().slice(0, 7);
-      const res = await apiGet(`/api/v1/attendance/student/${profile.id}?month=${ym}`);
-      if (res.success) {setHistory(res.data || []);}
+      const res = await apiGet(`/api/v1/attendance/student/${profile.id}`);
+      if (res.success) {setHistory(res.data.slice(0, 30) || []);}
     } catch {
       /* silently fail */
     }
@@ -158,12 +152,7 @@ export default function StudentAttendance() {
           .select('student_id')
           .eq('student_id', profile.id)
           .single();
-        if (!cancelled) {
-          setView(data ? 'main' : 'face-registration');
-          if (typeof window !== 'undefined' && window.location.search.includes('updateFace=true')) {
-            setShowReRegister(true);
-          }
-        }
+        if (!cancelled) {setView(data ? 'main' : 'face-registration');}
       } catch {
         if (!cancelled) {setView('face-registration');}
       }

@@ -1,8 +1,3 @@
-/**
- * @file apps/client/app/(dashboard)/student/visitors/page.tsx
- * Student portal visitors dashboard subpage rendering status and actions.
- */
-
 'use client';
 
 import { useEffect, useState } from 'react';

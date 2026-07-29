@@ -1,8 +1,3 @@
-/**
- * @file apps/client/app/(dashboard)/student/complaints/page.tsx
- * Student portal complaints dashboard subpage rendering status and actions.
- */
-
 'use client';
 
 import { useEffect, useState } from 'react';

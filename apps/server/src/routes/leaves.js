@@ -1,8 +1,3 @@
-/**
- * @file apps/server/src/routes/leaves.js
- * Express route handlers managing leaves operations and database queries.
- */
-
 import { Router } from 'express';
 import { supabaseAdmin } from '../config/supabase.js';
 import { authenticate } from '../middleware/auth.js';
@@ -11,18 +6,12 @@ import { validate } from '../middleware/validate.js';
 import { leaveSchema } from '../config/validation.js';
 import logger from '../config/logger.js';
 import { deleteCache, publishEvent } from '../config/redis.js';
-import { createNotification, notifyWardens } from '../config/notify.js';
+import { createNotification } from '../config/notify.js';
 import { auditLog } from '../config/audit.js';
 import { emitToUser } from '../config/socket.js';
 
 const router = Router();
 
-/**
- * POST /api/v1/leaves
- * Submits a new leave request for the authenticated student.
- * Validates start and end dates relative to today, inserts entry as pending,
- * and clears dashboard statistics cache.
- */
 router.post('/', authenticate, requireStudent, validate(leaveSchema), async (req, res, next) => {
   try {
     const { start_date, end_date, reason } = req.body;
@@ -54,15 +43,6 @@ router.post('/', authenticate, requireStudent, validate(leaveSchema), async (req
     if (error) {throw error;}
 
     logger.info(`Leave request submitted by user ${req.user.id}`);
-
-    const studentName = req.profile?.full_name || 'A student';
-    await notifyWardens(
-      'New Leave Request',
-      `${studentName} requested leave from ${start_date} to ${end_date}`,
-      'leave',
-      record.id
-    );
-
     await deleteCache('stats:dashboard');
     res.json({ success: true, data: record });
   } catch (error) {
@@ -70,11 +50,6 @@ router.post('/', authenticate, requireStudent, validate(leaveSchema), async (req
   }
 });
 
-/**
- * GET /api/v1/leaves/my
- * Retrieves a list of leave requests owned by the authenticated student.
- * Filters by student_id context.
- */
 router.get('/my', authenticate, requireStudent, async (req, res, next) => {
   try {
     const limit = parseInt(req.query.limit) || 50;

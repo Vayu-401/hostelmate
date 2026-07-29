@@ -79,10 +79,6 @@ describe('Parent API Integration', () => {
   });
 
   describe('GET /api/parent/my-student', () => {
-    /**
-     * Test: should return linked student profile and attendance
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return linked student profile and attendance', async () => {
       queryResults = [
         { data: { student_id: 'student-id', relation: 'Father' }, error: null }, // parent lookup
@@ -100,10 +96,6 @@ describe('Parent API Integration', () => {
       expect(res.body.data.today_attendance.status).toBe('present');
     });
 
-    /**
-     * Test: should return 404 if no linked student
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 404 if no linked student', async () => {
       queryResults = [{ data: null, error: new Error('No rows') }];
 
@@ -111,20 +103,12 @@ describe('Parent API Integration', () => {
       expect(res.status).toBe(404);
     });
 
-    /**
-     * Test: should reject non-parent access
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject non-parent access', async () => {
       currentProfile = mockStudentProfile;
       const res = await request(app).get('/api/v1/parent/my-student');
       expect(res.status).toBe(403);
     });
 
-    /**
-     * Test: should catch unhandled exceptions gracefully
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should catch unhandled exceptions gracefully', async () => {
       queryResults = [
         { data: { student_id: 'student-id' }, error: null }, // parent lookup passes

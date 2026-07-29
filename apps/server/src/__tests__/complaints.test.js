@@ -71,8 +71,7 @@ jest.unstable_mockModule('../config/openai.js', () => ({
 }));
 
 jest.unstable_mockModule('../config/notify.js', () => ({
-  createNotification: jest.fn().mockResolvedValue(true),
-  notifyWardens: jest.fn().mockResolvedValue(true),
+  createNotification: jest.fn(),
 }));
 
 jest.unstable_mockModule('../config/audit.js', () => ({
@@ -122,10 +121,6 @@ describe('Complaints API', () => {
   });
 
   describe('POST /api/complaints - Student submits', () => {
-    /**
-     * Test: should reject invalid category
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject invalid category', async () => {
       const res = await request(app).post('/api/v1/complaints').send({
         category: 'invalid_cat',
@@ -135,10 +130,6 @@ describe('Complaints API', () => {
       expect(res.status).toBe(400);
     });
 
-    /**
-     * Test: should reject missing description
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject missing description', async () => {
       const res = await request(app).post('/api/v1/complaints').send({
         category: 'electrical',
@@ -146,10 +137,6 @@ describe('Complaints API', () => {
       expect(res.status).toBe(400);
     });
 
-    /**
-     * Test: should accept valid complaint
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should accept valid complaint', async () => {
       supabaseMock.single.mockResolvedValueOnce({
         data: { id: '1', ai_category: 'electrical' },
@@ -162,10 +149,6 @@ describe('Complaints API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should include AI classification in response
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should include AI classification in response', async () => {
       supabaseMock.single.mockResolvedValueOnce({
         data: { id: '1', ai_category: 'electrical' },
@@ -180,10 +163,6 @@ describe('Complaints API', () => {
       expect(res.body.ai.classified).toBe(true);
     });
 
-    /**
-     * Test: should work even if AI classification fails
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should work even if AI classification fails', async () => {
       classifyComplaint.mockRejectedValueOnce(new Error('AI failed'));
       supabaseMock.single.mockResolvedValueOnce({ data: { id: '1' }, error: null });
@@ -194,10 +173,6 @@ describe('Complaints API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should default is_urgent to false
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should default is_urgent to false', async () => {
       supabaseMock.single.mockResolvedValueOnce({
         data: { id: '1', is_urgent: false },
@@ -212,20 +187,12 @@ describe('Complaints API', () => {
   });
 
   describe('GET /api/complaints/my - Student views own', () => {
-    /**
-     * Test: should return student complaints
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return student complaints', async () => {
       supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
       const res = await request(app).get('/api/v1/complaints/my');
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should respect the limit query parameter for student complaints
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should respect the limit query parameter for student complaints', async () => {
       supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
       const res = await request(app).get('/api/v1/complaints/my?limit=5');
@@ -233,10 +200,6 @@ describe('Complaints API', () => {
       expect(supabaseMock.limit).toHaveBeenCalledWith(5);
     });
 
-    /**
-     * Test: should return 401 without auth
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 401 without auth', async () => {
       currentProfile = null;
       const res = await request(app).get('/api/v1/complaints/my');
@@ -245,10 +208,6 @@ describe('Complaints API', () => {
   });
 
   describe('GET /api/complaints/all - Warden views all', () => {
-    /**
-     * Test: should return all complaints
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return all complaints', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
@@ -256,10 +215,6 @@ describe('Complaints API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should filter by status query param
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should filter by status query param', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
@@ -267,10 +222,6 @@ describe('Complaints API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should return 403 for student
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 403 for student', async () => {
       const res = await request(app).get('/api/v1/complaints/all');
       expect(res.status).toBe(403);
@@ -278,10 +229,6 @@ describe('Complaints API', () => {
   });
 
   describe('PATCH /api/complaints/:id/status - Warden updates', () => {
-    /**
-     * Test: should update status to in_progress
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should update status to in_progress', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.single.mockResolvedValueOnce({
@@ -294,10 +241,6 @@ describe('Complaints API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should update status to resolved with resolution date
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should update status to resolved with resolution date', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.single.mockResolvedValueOnce({
@@ -310,10 +253,6 @@ describe('Complaints API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should return 403 for student
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 403 for student', async () => {
       const res = await request(app)
         .patch('/api/v1/complaints/1/status')
@@ -321,10 +260,6 @@ describe('Complaints API', () => {
       expect(res.status).toBe(403);
     });
 
-    /**
-     * Test: should reject invalid status value
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject invalid status value', async () => {
       currentProfile = mockWardenProfile;
       const res = await request(app)
@@ -335,10 +270,6 @@ describe('Complaints API', () => {
   });
 
   describe('GET /api/complaints/stats', () => {
-    /**
-     * Test: should return complaint statistics for warden
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return complaint statistics for warden', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.select.mockResolvedValueOnce({ data: [], error: null }); // For aggregated stats
@@ -346,20 +277,12 @@ describe('Complaints API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should return 403 for student
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 403 for student', async () => {
       const res = await request(app).get('/api/v1/complaints/stats');
       expect(res.status).toBe(403);
     });
   });
   describe('GET /api/complaints/analytics', () => {
-    /**
-     * Test: should return analytics for warden
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return analytics for warden', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.gte.mockResolvedValueOnce({ data: [{ category: 'electrical', created_at: new Date() }], error: null });
@@ -370,10 +293,6 @@ describe('Complaints API', () => {
   });
 
   describe('DELETE /api/complaints/:id', () => {
-    /**
-     * Test: should soft delete for student
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should soft delete for student', async () => {
       supabaseMock.single.mockResolvedValueOnce({ data: null, error: null });
       const res = await request(app).delete('/api/v1/complaints/1');

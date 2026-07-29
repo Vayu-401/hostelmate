@@ -43,7 +43,6 @@ jest.unstable_mockModule('../config/redis.js', () => ({
 
 jest.unstable_mockModule('../config/notify.js', () => ({
   createNotification: jest.fn().mockResolvedValue(true),
-  notifyWardens: jest.fn().mockResolvedValue(true),
 }));
 
 let currentProfile = { id: 'student-id', role: 'student' };
@@ -75,10 +74,6 @@ describe('Payments API', () => {
     queryResults = [];
   });
 
-  /**
-   * Test: GET /api/v1/payments/fee-structures should return grouped fee structures
-   * Verifies behaviour under correct inputs and constraints.
-   */
   it('GET /api/v1/payments/fee-structures should return grouped fee structures', async () => {
     queryResults = [
       {
@@ -97,10 +92,6 @@ describe('Payments API', () => {
     expect(res.body.data.yearly).toHaveLength(1);
   });
 
-  /**
-   * Test: POST /api/v1/payments/fee-structures should create structure if warden
-   * Verifies behaviour under correct inputs and constraints.
-   */
   it('POST /api/v1/payments/fee-structures should create structure if warden', async () => {
     currentProfile = { id: 'warden-id', role: 'warden' };
     queryResults = [{ data: { id: '3', name: 'New Fee' }, error: null }];
@@ -116,10 +107,6 @@ describe('Payments API', () => {
     expect(res.body.data.id).toBe('3');
   });
 
-  /**
-   * Test: GET /api/v1/payments/my should return student fees
-   * Verifies behaviour under correct inputs and constraints.
-   */
   it('GET /api/v1/payments/my should return student fees', async () => {
     queryResults = [
       { data: [{ id: 'payment-1', status: 'pending', amount: 1000 }], error: null },
@@ -132,10 +119,6 @@ describe('Payments API', () => {
     expect(res.body.data.payments.history).toBeUndefined(); // It actually splits into paid and failed
   });
 
-  /**
-   * Test: POST /api/v1/payments/create-order should create a Razorpay order
-   * Verifies behaviour under correct inputs and constraints.
-   */
   it('POST /api/v1/payments/create-order should create a Razorpay order', async () => {
     queryResults = [
       { data: { id: 'payment-1', amount: 5000, status: 'pending' }, error: null },
@@ -147,10 +130,6 @@ describe('Payments API', () => {
     expect(res.body.data.order_id).toBe('order_123');
   });
 
-  /**
-   * Test: POST /api/v1/payments/verify should verify a successful payment
-   * Verifies behaviour under correct inputs and constraints.
-   */
   it('POST /api/v1/payments/verify should verify a successful payment', async () => {
     queryResults = [
       { data: { id: 'payment-1', status: 'pending', student_id: 'student-id', amount: 5000 }, error: null },
@@ -168,10 +147,6 @@ describe('Payments API', () => {
     expect(res.body.success).toBe(true);
   });
 
-  /**
-   * Test: GET /api/v1/payments/all should return all payments for warden
-   * Verifies behaviour under correct inputs and constraints.
-   */
   it('GET /api/v1/payments/all should return all payments for warden', async () => {
     currentProfile = { id: 'warden-id', role: 'warden' };
     queryResults = [
@@ -184,10 +159,6 @@ describe('Payments API', () => {
     expect(res.body.data.summary.total_collected).toBe(500);
   });
 
-  /**
-   * Test: POST /api/v1/payments/generate-bills should generate bills for warden
-   * Verifies behaviour under correct inputs and constraints.
-   */
   it('POST /api/v1/payments/generate-bills should generate bills for warden', async () => {
     currentProfile = { id: 'warden-id', role: 'warden' };
     queryResults = [
@@ -206,10 +177,6 @@ describe('Payments API', () => {
     expect(res.body.generated).toBe(1);
   });
 
-  /**
-   * Test: POST /api/v1/payments/cancel should cancel payment for student
-   * Verifies behaviour under correct inputs and constraints.
-   */
   it('POST /api/v1/payments/cancel should cancel payment for student', async () => {
     queryResults = [
       { data: null, error: null },
@@ -221,10 +188,6 @@ describe('Payments API', () => {
     expect(res.body.success).toBe(true);
   });
 
-  /**
-   * Test: GET /api/v1/payments/students-list should return students
-   * Verifies behaviour under correct inputs and constraints.
-   */
   it('GET /api/v1/payments/students-list should return students', async () => {
     currentProfile = { id: 'warden-id', role: 'warden' };
     queryResults = [{ data: [{ id: 's1', roll_number: '123' }], error: null }];
@@ -234,10 +197,6 @@ describe('Payments API', () => {
     expect(res.body.data).toHaveLength(1);
   });
 
-  /**
-   * Test: POST /api/v1/payments/send-reminders should notify and update cache
-   * Verifies behaviour under correct inputs and constraints.
-   */
   it('POST /api/v1/payments/send-reminders should notify and update cache', async () => {
     currentProfile = { id: 'warden-id', role: 'warden' };
     queryResults = [
@@ -251,10 +210,6 @@ describe('Payments API', () => {
     expect(res.body.reminders_sent).toBe(1);
   });
 
-  /**
-   * Test: PATCH /api/v1/payments/:id/mark-paid should mark as paid offline
-   * Verifies behaviour under correct inputs and constraints.
-   */
   it('PATCH /api/v1/payments/:id/mark-paid should mark as paid offline', async () => {
     currentProfile = { id: 'warden-id', role: 'warden' };
     queryResults = [
@@ -266,10 +221,6 @@ describe('Payments API', () => {
     expect(res.body.data.id).toBe('p1');
   });
 
-  /**
-   * Test: GET /api/v1/payments/receipt/:id should return receipt details
-   * Verifies behaviour under correct inputs and constraints.
-   */
   it('GET /api/v1/payments/receipt/:id should return receipt details', async () => {
     currentProfile = { id: 'warden-id', role: 'warden' };
     queryResults = [
@@ -281,10 +232,6 @@ describe('Payments API', () => {
     expect(res.body.data.id).toBe('p1');
   });
 
-  /**
-   * Test: GET /api/v1/payments/receipt/:id should return receipt for parent
-   * Verifies behaviour under correct inputs and constraints.
-   */
   it('GET /api/v1/payments/receipt/:id should return receipt for parent', async () => {
     currentProfile = { id: 'parent-id', role: 'parent' };
     queryResults = [
@@ -297,10 +244,6 @@ describe('Payments API', () => {
     expect(res.body.data.id).toBe('p1');
   });
 
-  /**
-   * Test: GET /api/v1/payments/last-reminder should return last reminder for warden
-   * Verifies behaviour under correct inputs and constraints.
-   */
   it('GET /api/v1/payments/last-reminder should return last reminder for warden', async () => {
     currentProfile = { id: 'warden-id', role: 'warden' };
     const { getCache } = await import('../config/redis.js');

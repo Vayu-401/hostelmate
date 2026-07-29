@@ -1,8 +1,3 @@
-/**
- * @file apps/client/app/(dashboard)/student/payments/page.tsx
- * Student portal payments dashboard subpage rendering status and actions.
- */
-
 'use client';
 import { AlertTriangle, Home, UtensilsCrossed } from 'lucide-react';
 

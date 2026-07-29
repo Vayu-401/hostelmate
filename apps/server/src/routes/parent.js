@@ -1,8 +1,3 @@
-/**
- * @file apps/server/src/routes/parent.js
- * Express route handlers managing parent operations and database queries.
- */
-
 import { Router } from 'express';
 import { supabaseAdmin } from '../config/supabase.js';
 import { authenticate } from '../middleware/auth.js';
@@ -11,11 +6,9 @@ import { requireParent } from '../middleware/rbac.js';
 const router = Router();
 
 /**
- * GET /api/v1/parent/my-student
- * Retrieves the profile, room details, today's attendance, and month-to-date attendance metrics
- * of the student linked to the authenticated parent user.
- * Bypasses RLS to query multiple tables by linking profiles, parents, students, and attendance.
- * Restricted to Parents.
+ * GET /api/parent/my-student
+ * Returns the linked student's profile + today's attendance for the authenticated parent.
+ * Uses supabaseAdmin to bypass RLS.
  */
 router.get('/my-student', authenticate, requireParent, async (req, res, next) => {
   try {

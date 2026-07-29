@@ -1,8 +1,3 @@
-/**
- * @file apps/server/src/routes/students.js
- * Express route handlers managing students operations and database queries.
- */
-
 import { Router } from 'express';
 import { supabaseAdmin } from '../config/supabase.js';
 import { authenticate } from '../middleware/auth.js';
@@ -11,11 +6,9 @@ import { requireWarden } from '../middleware/rbac.js';
 const router = Router();
 
 /**
- * GET /api/v1/students
- * Retrieves a list of all students registered in the hostel.
- * Fetches roll numbers, room ID, parent profile ID, and related block names.
- * Supports optional `search` query parameter to filter by name, email, roll number, or room.
- * Restricted to Wardens.
+ * GET /api/students
+ * Returns all students with their profile info and room assignment.
+ * Warden only.
  */
 router.get('/', authenticate, requireWarden, async (req, res, next) => {
   try {

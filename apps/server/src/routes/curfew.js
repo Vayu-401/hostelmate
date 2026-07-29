@@ -1,8 +1,3 @@
-/**
- * @file apps/server/src/routes/curfew.js
- * Express route handlers managing curfew operations and database queries.
- */
-
 import { Router } from 'express';
 import { supabaseAdmin } from '../config/supabase.js';
 import { authenticate } from '../middleware/auth.js';
@@ -13,12 +8,6 @@ import { createNotification } from '../config/notify.js';
 
 const router = Router();
 
-/**
- * GET /api/v1/curfew/violations
- * Retrieves a list of students who have violated curfew rules today.
- * Looks up curfew time config in Redis cache, checks current IST time,
- * and matches students against today's attendance records to find absentees.
- */
 router.get('/violations', authenticate, requireWarden, async (req, res, next) => {
   try {
     const today = new Date().toISOString().split('T')[0];
@@ -127,17 +116,15 @@ router.post('/notify', authenticate, requireWarden, async (req, res, next) => {
         .eq('student_id', student_id);
 
       if (parentRows && parentRows.length > 0) {
-        await Promise.all(
-          parentRows.map((p) =>
-            createNotification(
-              p.id,
-              'Curfew Alert',
-              `Your ward ${name} has not checked in by curfew time. Please contact the hostel immediately.`,
-              'notice',
-              student_id
-            )
-          )
-        );
+        for (const p of parentRows) {
+          await createNotification(
+            p.id,
+            'Curfew Alert',
+            `Your ward ${name} has not checked in by curfew time. Please contact the hostel immediately.`,
+            'notice',
+            student_id
+          );
+        }
       }
 
       // Mark as notified today

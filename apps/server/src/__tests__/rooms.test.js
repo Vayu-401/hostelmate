@@ -100,10 +100,6 @@ describe('Rooms API', () => {
   });
 
   describe('GET /api/rooms/my - Student views room', () => {
-    /**
-     * Test: should return student room details and roommates
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return student room details and roommates', async () => {
       queryResults = [
         // Mock student query
@@ -126,10 +122,6 @@ describe('Rooms API', () => {
   });
 
   describe('GET /api/rooms/available - Student views available rooms', () => {
-    /**
-     * Test: should return rooms with occupancy < capacity
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return rooms with occupancy < capacity', async () => {
       queryResults = [
         {
@@ -144,10 +136,6 @@ describe('Rooms API', () => {
       expect(res.body.data[0].room_number).toBe('101');
       expect(res.body.data[0].occupancy).toBe(1);
     });
-    /**
-     * Test: should filter available rooms by capacity if specified
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should filter available rooms by capacity if specified', async () => {
       queryResults = [
         {
@@ -168,10 +156,6 @@ describe('Rooms API', () => {
   });
 
   describe('GET /api/rooms - Warden views all rooms', () => {
-    /**
-     * Test: should return all rooms with current occupants
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return all rooms with current occupants', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [
@@ -192,10 +176,6 @@ describe('Rooms API', () => {
   });
 
   describe('POST /api/rooms - Warden creates room', () => {
-    /**
-     * Test: should create room in existing block
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should create room in existing block', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [
@@ -212,10 +192,6 @@ describe('Rooms API', () => {
       expect(res.body.data.id).toBe('room-new');
     });
 
-    /**
-     * Test: should return 403 for student
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 403 for student', async () => {
       const res = await request(app).post('/api/v1/rooms').send({
         room_number: '102',
@@ -227,10 +203,6 @@ describe('Rooms API', () => {
   });
 
   describe('GET /api/rooms/unassigned - Warden views unassigned students', () => {
-    /**
-     * Test: should return unassigned students
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return unassigned students', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [
@@ -243,10 +215,6 @@ describe('Rooms API', () => {
   });
 
   describe('POST /api/rooms/assign - Warden assigns room', () => {
-    /**
-     * Test: should assign room if capacity allows
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should assign room if capacity allows', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [
@@ -262,10 +230,6 @@ describe('Rooms API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should return 400 if room is full
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 400 if room is full', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [
@@ -282,10 +246,6 @@ describe('Rooms API', () => {
   });
 
   describe('Room Transfer Requests', () => {
-    /**
-     * Test: POST /transfer-request - should submit request
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('POST /transfer-request - should submit request', async () => {
       queryResults = [{ data: { room_id: 'room-1' }, error: null }, { error: null }];
 
@@ -296,10 +256,6 @@ describe('Rooms API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: GET /transfer-requests - should return requests for warden
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('GET /transfer-requests - should return requests for warden', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: [{ id: 'req-1' }], error: null }];
@@ -307,10 +263,6 @@ describe('Rooms API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: PATCH /transfer-requests/:id/approve - should approve
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('PATCH /transfer-requests/:id/approve - should approve', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [
@@ -326,10 +278,6 @@ describe('Rooms API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: PATCH /transfer-requests/:id/reject - should reject
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('PATCH /transfer-requests/:id/reject - should reject', async () => {
       currentProfile = mockWardenProfile;
       queryResults = [{ data: { id: 'req-1', student_id: 'student-1' }, error: null }];

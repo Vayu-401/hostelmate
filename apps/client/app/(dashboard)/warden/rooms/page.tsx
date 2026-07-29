@@ -1,8 +1,3 @@
-/**
- * @file apps/client/app/(dashboard)/warden/rooms/page.tsx
- * Warden portal rooms administrative page rendering statistics and actions.
- */
-
 'use client';
 import { Home, RefreshCcw } from 'lucide-react';
 

@@ -1,8 +1,3 @@
-/**
- * @file apps/server/src/routes/attendance.js
- * Express route handlers managing attendance operations and database queries.
- */
-
 import { Router } from 'express';
 import { supabaseAdmin } from '../config/supabase.js';
 import { authenticate } from '../middleware/auth.js';
@@ -18,12 +13,6 @@ import { createNotification } from '../config/notify.js';
 
 const router = Router();
 
-/**
- * POST /api/v1/attendance/mark
- * Marks a student's daily attendance records.
- * Supports face biometrics bypass or GPS coordinate verification against
- * the hostel geofence coordinates. Invalidates dashboard metrics caches.
- */
 router.post(
   '/mark',
   authenticate,
@@ -273,12 +262,8 @@ router.get('/student/:studentId', authenticate, async (req, res, next) => {
       .order('date', { ascending: false });
 
     if (month) {
-      const [yearStr, monthStr] = month.split('-');
-      const year = parseInt(yearStr, 10);
-      const m = parseInt(monthStr, 10);
-      const lastDay = new Date(year, m, 0).getDate();
       const startOfMonth = `${month}-01`;
-      const endOfMonth = `${month}-${String(lastDay).padStart(2, '0')}`;
+      const endOfMonth = `${month}-31`;
       query = query.gte('date', startOfMonth).lte('date', endOfMonth);
     }
 

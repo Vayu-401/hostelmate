@@ -1,16 +1,11 @@
-/**
- * @file apps/client/components/ui/CursorGlow.tsx
- * Shared client component for layout renders and user interaction flows.
- */
-
 'use client';
 
 import { useEffect, useRef } from 'react';
 
 type CursorGlowProps = {
-  /** Full rgba() glow colour. Keep it faint — it sits behind the page content. (default: 'rgba(124,92,252,0.08)') */
+  /** Full rgba() glow colour. Keep it faint — it sits behind the content. */
   color?: string;
-  /** Diameter of the glow sphere in pixels. (default: 600px) */
+  /** Diameter of the glow in px. */
   size?: number;
 };
 
@@ -19,7 +14,7 @@ type CursorGlowProps = {
  * Spring-smoothed in a single rAF loop, transform-only, and disabled on
  * coarse/touch pointers and prefers-reduced-motion. Purely decorative.
  */
-export function CursorGlow({ color = 'rgba(124,92,252,0.08)', size = 600 }: CursorGlowProps) {
+export function CursorGlow({ color = 'rgba(124,92,252,0.07)', size = 600 }: CursorGlowProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

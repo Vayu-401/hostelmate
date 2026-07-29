@@ -1,8 +1,3 @@
-/**
- * @file apps/client/hooks/useClickOutside.ts
- * Custom React hook managing local state and side effects.
- */
-
 import { useEffect, RefObject } from 'react';
 
 export function useClickOutside<T extends HTMLElement = HTMLElement>(

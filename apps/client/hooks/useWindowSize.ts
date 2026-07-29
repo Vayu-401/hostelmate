@@ -1,8 +1,3 @@
-/**
- * @file apps/client/hooks/useWindowSize.ts
- * Custom React hook managing local state and side effects.
- */
-
 import { useState, useEffect } from 'react';
 
 interface WindowSize {

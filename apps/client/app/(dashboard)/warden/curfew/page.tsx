@@ -1,8 +1,3 @@
-/**
- * @file apps/client/app/(dashboard)/warden/curfew/page.tsx
- * Warden portal curfew administrative page rendering statistics and actions.
- */
-
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';

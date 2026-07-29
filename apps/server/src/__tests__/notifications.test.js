@@ -105,10 +105,6 @@ describe('Notifications API Integration', () => {
   });
 
   describe('GET /api/notifications', () => {
-    /**
-     * Test: should return notifications for authenticated user
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return notifications for authenticated user', async () => {
       queryResults = [
         { data: [], count: 0, error: null },
@@ -118,10 +114,6 @@ describe('Notifications API Integration', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should return unread_count
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return unread_count', async () => {
       queryResults = [
         { data: [{ is_read: false }], count: 1, error: null },
@@ -133,10 +125,6 @@ describe('Notifications API Integration', () => {
       expect(res.body.data.unread_count).toBe(1);
     });
 
-    /**
-     * Test: should handle supabase error safely
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should handle supabase error safely', async () => {
       queryResults = [{ data: null, error: new Error('DB Error') }];
       const res = await request(app).get('/api/v1/notifications');
@@ -144,10 +132,6 @@ describe('Notifications API Integration', () => {
       expect(res.body.data.notifications).toHaveLength(0);
     });
 
-    /**
-     * Test: should catch exceptions safely
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should catch exceptions safely', async () => {
       queryResults = [{ throwMsg: 'Network Error' }];
       const res = await request(app).get('/api/v1/notifications');
@@ -155,10 +139,6 @@ describe('Notifications API Integration', () => {
       expect(res.body.data.notifications).toHaveLength(0);
     });
 
-    /**
-     * Test: should respect the limit and page query parameters
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should respect the limit and page query parameters', async () => {
       queryResults = [
         { data: [], count: 0, error: null },
@@ -171,30 +151,18 @@ describe('Notifications API Integration', () => {
   });
 
   describe('PATCH /api/notifications/read-all', () => {
-    /**
-     * Test: should mark all as read
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should mark all as read', async () => {
       queryResults = [{ error: null }];
       const res = await request(app).patch('/api/v1/notifications/read-all');
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should handle errors gracefully
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should handle errors gracefully', async () => {
       queryResults = [{ error: new Error('DB Error') }];
       const res = await request(app).patch('/api/v1/notifications/read-all');
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should catch exceptions safely
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should catch exceptions safely', async () => {
       queryResults = [{ throwMsg: 'Network Error' }];
       const res = await request(app).patch('/api/v1/notifications/read-all');
@@ -203,30 +171,18 @@ describe('Notifications API Integration', () => {
   });
 
   describe('PATCH /api/notifications/:id/read', () => {
-    /**
-     * Test: should mark single notification as read
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should mark single notification as read', async () => {
       queryResults = [{ error: null }];
       const res = await request(app).patch('/api/v1/notifications/1/read');
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should handle errors gracefully
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should handle errors gracefully', async () => {
       queryResults = [{ error: new Error('DB Error') }];
       const res = await request(app).patch('/api/v1/notifications/1/read');
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should catch exceptions safely
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should catch exceptions safely', async () => {
       queryResults = [{ throwMsg: 'Network Error' }];
       const res = await request(app).patch('/api/v1/notifications/1/read');
@@ -235,30 +191,18 @@ describe('Notifications API Integration', () => {
   });
 
   describe('DELETE /api/notifications/:id', () => {
-    /**
-     * Test: should delete notification
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should delete notification', async () => {
       queryResults = [{ error: null }];
       const res = await request(app).delete('/api/v1/notifications/1');
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should handle errors gracefully
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should handle errors gracefully', async () => {
       queryResults = [{ error: new Error('DB Error') }];
       const res = await request(app).delete('/api/v1/notifications/1');
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should catch exceptions safely
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should catch exceptions safely', async () => {
       queryResults = [{ throwMsg: 'Network Error' }];
       const res = await request(app).delete('/api/v1/notifications/1');

@@ -1,11 +1,6 @@
-/**
- * @file apps/client/app/(dashboard)/student/dashboard/page.tsx
- * Student portal dashboard dashboard subpage rendering status and actions.
- */
-
 'use client';
 
-import { useEffect, useState, useRef, Suspense } from 'react';
+import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useApi } from '@/hooks/useApi';
@@ -28,10 +23,6 @@ import {
   UserCheck,
   ArrowLeftRight,
 } from 'lucide-react';
-
-const FaceEnrollment = dynamic(() => import('@/components/face/FaceEnrollment'), {
-  ssr: false,
-});
 
 const NotificationBell = dynamic(
   () => import('@/components/ui/NotificationBell').then((m) => ({ default: m.NotificationBell })),
@@ -62,24 +53,9 @@ export default function StudentDashboard() {
   const router = useRouter();
   const { apiGet } = useApi();
   const [firstName, setFirstName] = useState('');
-  const [studentId, setStudentId] = useState('');
   const [loading, setLoading] = useState(true);
   const [faceRegistered, setFaceRegistered] = useState<boolean | null>(null);
-  const [showFaceScanner, setShowFaceScanner] = useState(false);
   const [stats, setStats] = useState<StudentStats>(EMPTY_STATS);
-  const scannerRef = useRef<HTMLDivElement>(null);
-
-  const handleToggleFaceScanner = () => {
-    const nextState = !showFaceScanner;
-    setShowFaceScanner(nextState);
-    if (nextState) {
-      const scrollToBottom = () => {
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-      };
-      setTimeout(scrollToBottom, 100);
-      setTimeout(scrollToBottom, 350);
-    }
-  };
 
   useEffect(() => {
     const init = async () => {
@@ -107,7 +83,6 @@ export default function StudentDashboard() {
         setLoading(false);
         return;
       }
-      setStudentId(user.id);
 
       const [profileResult, attendanceRes, leavesRes, complaintsRes, paymentsRes, faceResult] =
         await Promise.all([
@@ -130,17 +105,14 @@ export default function StudentDashboard() {
       // Attendance
       if (attendanceRes?.success && Array.isArray(attendanceRes.data)) {
         const records: { date: string; status: string }[] = attendanceRes.data;
-        const now = new Date();
-        const ym = now.toISOString().slice(0, 7); // YYYY-MM
-        const currentDay = now.getDate(); // e.g. 22
-
-        const monthRecords = records.filter((r) => (r.date || '').startsWith(ym));
-        const monthPresent = monthRecords.filter((r) => r.status === 'present').length;
-
-        newStats.monthPresent = monthPresent;
-        newStats.monthTotal = currentDay;
-        newStats.attendanceRate =
-          currentDay > 0 ? Math.min(100, Math.round((monthPresent / currentDay) * 100)) : 0;
+        const present = records.filter((r) => r.status === 'present').length;
+        newStats.attendanceRate = records.length
+          ? Math.round((present / records.length) * 100)
+          : 0;
+        const ym = new Date().toISOString().slice(0, 7); // YYYY-MM
+        const month = records.filter((r) => (r.date || '').startsWith(ym));
+        newStats.monthTotal = month.length;
+        newStats.monthPresent = month.filter((r) => r.status === 'present').length;
       }
 
       // Leaves
@@ -265,11 +237,10 @@ export default function StudentDashboard() {
         <CursorGlow color="rgba(251, 146, 60, 0.12)" size={600} />
         {/* Greeting header */}
         <Reveal>
-        <div style={{ marginBottom: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <div style={{ marginBottom: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <div>
-            <h1 suppressHydrationWarning style={{ fontSize: '26px', fontWeight: 500, color: '#fff', letterSpacing: '-0.5px', margin: 0 }}>
-              {greeting} {loading && !firstName ? 'Student' : firstName || 'Student'}
-            </h1>
+            <div suppressHydrationWarning style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', marginBottom: '4px' }}>{greeting}</div>
+            <h1 style={{ fontSize: '26px', fontWeight: 500, color: '#fff', letterSpacing: '-0.5px', margin: 0 }}>{loading && !firstName ? 'Student' : firstName || 'Student'}</h1>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <AiAssistant />
@@ -389,7 +360,7 @@ export default function StudentDashboard() {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 {faceRegistered && (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#4ade80', fontWeight: 500 }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#fb923c', fontWeight: 500 }}>
                     <svg style={{ width: '14px', height: '14px' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
@@ -397,32 +368,15 @@ export default function StudentDashboard() {
                   </span>
                 )}
                 <button
-                  onClick={handleToggleFaceScanner}
+                  onClick={() => router.push('/student/attendance')}
                   style={{ minWidth: '110px', display: 'flex', justifyContent: 'center', fontSize: '11px', color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', transition: 'all 0.2s' }}
                   onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.85)'; e.currentTarget.style.borderColor = 'rgba(251,146,60,0.4)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
                 >
-                  {showFaceScanner ? 'Close Scanner' : faceRegistered ? 'Update Face' : 'Set up Face'}
+                  {faceRegistered ? 'Manage Face' : 'Set up Face'}
                 </button>
               </div>
             </div>
-
-            {/* Inline Face Scanner */}
-            {showFaceScanner && (
-              <div ref={scannerRef} style={{ marginTop: '20px', borderRadius: '16px', overflow: 'hidden', background: '#0a0a0c', border: '0.5px solid rgba(255,255,255,0.1)', padding: '0px' }}>
-                <Suspense fallback={<div style={{ padding: '32px', textAlign: 'center', fontSize: '13px', color: '#9ca3af' }}>Loading face scanner…</div>}>
-                  <FaceEnrollment
-                    subjectId={studentId}
-                    role="student"
-                    onSuccess={() => {
-                      setShowFaceScanner(false);
-                      setFaceRegistered(true);
-                    }}
-                    onCancel={() => setShowFaceScanner(false)}
-                  />
-                </Suspense>
-              </div>
-            )}
           </div>
           </Reveal>
         )}

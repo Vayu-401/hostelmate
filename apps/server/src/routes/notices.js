@@ -1,8 +1,3 @@
-/**
- * @file apps/server/src/routes/notices.js
- * Express route handlers managing notices operations and database queries.
- */
-
 import { Router } from 'express';
 import { supabaseAdmin } from '../config/supabase.js';
 import { authenticate } from '../middleware/auth.js';
@@ -17,12 +12,6 @@ import { emitToAll } from '../config/socket.js';
 
 const router = Router();
 
-/**
- * POST /api/v1/notices
- * Creates a new notice announcement record.
- * Restricted to Wardens. Performs bulk notification insertion for the target audience
- * (students, parents, or all) and invalidates role-specific notices cache keys.
- */
 router.post('/', authenticate, requireWarden, validate(noticeSchema), async (req, res, next) => {
   try {
     const { title, content, target_audience } = req.body;

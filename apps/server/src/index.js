@@ -1,8 +1,3 @@
-/**
- * @file apps/server/src/index.js
- * Source code module for HostelMate index.js.
- */
-
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -14,7 +9,7 @@ import morgan from 'morgan';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 
-import { generalLimiter } from './middleware/rateLimit.js';
+import { generalLimiter, notificationLimiter } from './middleware/rateLimit.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import requestLogger from './middleware/requestLogger.js';
 import { requestId } from './middleware/requestId.js';
@@ -121,7 +116,7 @@ app.use('/api/v1/lost-found', lostFoundRoutes);
 app.use('/api/v1/stats', statsRoutes);
 app.use('/api/v1/staff-feedback', staffFeedbackRoutes);
 app.use('/api/v1/curfew', curfewRoutes);
-app.use('/api/v1/notifications', notificationsRoutes);
+app.use('/api/v1/notifications', notificationLimiter, notificationsRoutes);
 app.use('/api/v1/rooms', roomsRoutes);
 app.use('/api/v1/audit', auditRoutes);
 app.use('/api/v1/students', studentsRoutes);

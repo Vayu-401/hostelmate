@@ -79,10 +79,6 @@ describe('Staff Feedback API Integration', () => {
   });
 
   describe('GET /api/staff-feedback', () => {
-    /**
-     * Test: should return aggregated staff feedback for warden
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return aggregated staff feedback for warden', async () => {
       queryResults = [
         { data: [{ id: 'staff-1', name: 'John Doe' }], error: null }, // staff members
@@ -104,10 +100,6 @@ describe('Staff Feedback API Integration', () => {
   });
 
   describe('GET /api/staff-feedback/:staffId', () => {
-    /**
-     * Test: should return feedback for specific staff member
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return feedback for specific staff member', async () => {
       queryResults = [{ data: [{ id: 'fb-1', rating: 4 }], error: null }];
 
@@ -117,10 +109,6 @@ describe('Staff Feedback API Integration', () => {
       expect(res.body.data.average_rating).toBe(4);
     });
 
-    /**
-     * Test: should respect the limit query parameter for staff feedback details
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should respect the limit query parameter for staff feedback details', async () => {
       queryResults = [{ data: [], error: null }];
 
@@ -136,10 +124,6 @@ describe('Staff Feedback API Integration', () => {
       currentProfile = mockStudentProfile;
     });
 
-    /**
-     * Test: should accept valid feedback from student
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should accept valid feedback from student', async () => {
       queryResults = [
         { data: { id: 'staff-1' }, error: null }, // check staff exists
@@ -159,10 +143,6 @@ describe('Staff Feedback API Integration', () => {
       expect(res.body.success).toBe(true);
     });
 
-    /**
-     * Test: should reject if already reviewed today
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject if already reviewed today', async () => {
       queryResults = [
         { data: { id: 'staff-1' }, error: null }, // check staff exists
@@ -177,10 +157,6 @@ describe('Staff Feedback API Integration', () => {
       expect(res.body.error).toMatch(/already reviewed/);
     });
 
-    /**
-     * Test: should reject invalid payload
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject invalid payload', async () => {
       const res = await request(app).post('/api/v1/staff-feedback').send({
         staff_id: 'not-a-uuid',

@@ -1,8 +1,3 @@
-/**
- * @file apps/server/src/routes/visitors.js
- * Express route handlers managing visitors operations and database queries.
- */
-
 import { Router } from 'express';
 import { z } from 'zod';
 import { supabaseAdmin } from '../config/supabase.js';
@@ -21,12 +16,6 @@ const visitorSchema = z.object({
   expected_visit_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
 });
 
-/**
- * POST /api/v1/visitors
- * Registers a new visitor pre-approval request on behalf of the student.
- * Validates visitor phone/date patterns, inserts record as pending, and triggers
- * in-app notifications to all wardens/admins for approval.
- */
 router.post('/', authenticate, requireStudent, validate(visitorSchema), async (req, res, next) => {
   try {
     const { visitor_name, visitor_phone, purpose, relationship, expected_visit_date } = req.body;

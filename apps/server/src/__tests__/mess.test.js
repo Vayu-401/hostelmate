@@ -93,30 +93,18 @@ describe('Mess API', () => {
   });
 
   describe('GET /api/mess/menu', () => {
-    /**
-     * Test: should return menu for any authenticated user
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return menu for any authenticated user', async () => {
       supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
       const res = await request(app).get('/api/v1/mess/menu');
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should return 401 without auth
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 401 without auth', async () => {
       currentProfile = null;
       const res = await request(app).get('/api/v1/mess/menu');
       expect(res.status).toBe(401);
     });
 
-    /**
-     * Test: should return cached menu on second request
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return cached menu on second request', async () => {
       const { getCache } = await import('../config/redis.js');
       getCache.mockResolvedValueOnce([{ day: 'Monday' }]);
@@ -126,10 +114,6 @@ describe('Mess API', () => {
   });
 
   describe('PUT /api/mess/menu - Warden updates', () => {
-    /**
-     * Test: should update menu item
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should update menu item', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.single.mockResolvedValueOnce({ data: { id: '1' }, error: null });
@@ -143,10 +127,6 @@ describe('Mess API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should reject invalid day_of_week
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject invalid day_of_week', async () => {
       currentProfile = mockWardenProfile;
       const res = await request(app)
@@ -159,10 +139,6 @@ describe('Mess API', () => {
       expect(res.status).toBe(400);
     });
 
-    /**
-     * Test: should reject invalid meal_type
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject invalid meal_type', async () => {
       currentProfile = mockWardenProfile;
       const res = await request(app)
@@ -175,10 +151,6 @@ describe('Mess API', () => {
       expect(res.status).toBe(400);
     });
 
-    /**
-     * Test: should return 403 for student
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 403 for student', async () => {
       const res = await request(app)
         .put('/api/v1/mess/menu')
@@ -192,10 +164,6 @@ describe('Mess API', () => {
   });
 
   describe('POST /api/mess/review - Student rates', () => {
-    /**
-     * Test: should accept valid review
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should accept valid review', async () => {
       supabaseMock.single.mockResolvedValueOnce({ data: { id: '1' }, error: null });
       const res = await request(app).post('/api/v1/mess/review').send({
@@ -207,10 +175,6 @@ describe('Mess API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should reject rating below 1
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject rating below 1', async () => {
       const res = await request(app).post('/api/v1/mess/review').send({
         rating: 0,
@@ -220,10 +184,6 @@ describe('Mess API', () => {
       expect(res.status).toBe(400);
     });
 
-    /**
-     * Test: should reject rating above 5
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject rating above 5', async () => {
       const res = await request(app).post('/api/v1/mess/review').send({
         rating: 6,
@@ -233,10 +193,6 @@ describe('Mess API', () => {
       expect(res.status).toBe(400);
     });
 
-    /**
-     * Test: should return 403 for warden
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 403 for warden', async () => {
       currentProfile = mockWardenProfile;
       const res = await request(app).post('/api/v1/mess/review').send({
@@ -249,10 +205,6 @@ describe('Mess API', () => {
   });
 
   describe('GET /api/mess/reviews - Warden views', () => {
-    /**
-     * Test: should return reviews with averages
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return reviews with averages', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
@@ -260,10 +212,6 @@ describe('Mess API', () => {
       expect(res.status).toBe(200);
     });
 
-    /**
-     * Test: should respect the limit query parameter
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should respect the limit query parameter', async () => {
       currentProfile = mockWardenProfile;
       supabaseMock.order.mockResolvedValueOnce({ data: [], error: null });
@@ -272,10 +220,6 @@ describe('Mess API', () => {
       expect(supabaseMock.limit).toHaveBeenCalledWith(5);
     });
 
-    /**
-     * Test: should return 403 for student
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return 403 for student', async () => {
       const res = await request(app).get('/api/v1/mess/reviews');
       expect(res.status).toBe(403);

@@ -1,8 +1,3 @@
-/**
- * @file apps/client/app/(dashboard)/student/leaves/page.tsx
- * Student portal leaves dashboard subpage rendering status and actions.
- */
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -18,11 +13,9 @@ import { container } from '@/lib/ui';
 const ORANGE = '#fb923c';
 
 const STATUS_STYLES: Record<string, { color: string; bg: string; border: string }> = {
-  approved:  { color: '#4ade80', bg: 'rgba(74,222,128,0.1)',  border: 'rgba(74,222,128,0.25)' },
-  rejected:  { color: '#f87171', bg: 'rgba(248,113,113,0.1)', border: 'rgba(248,113,113,0.25)' },
-  pending:   { color: '#fbbf24', bg: 'rgba(251,191,36,0.1)',  border: 'rgba(251,191,36,0.25)' },
-  on_leave:  { color: '#fb923c', bg: 'rgba(251,146,60,0.1)',  border: 'rgba(251,146,60,0.25)' },
-  default:   { color: '#fbbf24', bg: 'rgba(251,191,36,0.1)',  border: 'rgba(251,191,36,0.25)' },
+  approved: { color: '#4ade80', bg: 'rgba(74,222,128,0.1)', border: 'rgba(74,222,128,0.25)' },
+  rejected: { color: '#f87171', bg: 'rgba(248,113,113,0.1)', border: 'rgba(248,113,113,0.25)' },
+  default: { color: '#fbbf24', bg: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.25)' },
 };
 
 export default function StudentLeaves() {

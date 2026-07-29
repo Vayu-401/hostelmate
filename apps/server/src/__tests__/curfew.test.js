@@ -94,9 +94,9 @@ describe('Curfew API', () => {
     mockRedisGet.mockResolvedValue(null);
     mockRedisSet.mockResolvedValue('OK');
 
-    // Set time to 17:00 UTC (22:30 IST) for curfew checks
+    // Set time to 23:00 (11 PM) to bypass curfew check
     jest.useFakeTimers();
-    jest.setSystemTime(new Date('2026-05-31T17:00:00Z'));
+    jest.setSystemTime(new Date('2026-05-31T23:30:00Z'));
   });
 
   afterEach(() => {
@@ -104,10 +104,6 @@ describe('Curfew API', () => {
   });
 
   describe('GET /api/curfew/violations', () => {
-    /**
-     * Test: should return students absent after curfew
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return students absent after curfew', async () => {
       mockRedisGet.mockResolvedValueOnce(JSON.stringify({ curfew_time: '00:00', enabled: true }));
       queryResults = [
@@ -127,10 +123,6 @@ describe('Curfew API', () => {
       expect(res.body.data[0].student_id).toBe('s1');
     });
 
-    /**
-     * Test: should return empty if before curfew time
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return empty if before curfew time', async () => {
       mockRedisGet.mockResolvedValueOnce(JSON.stringify({ curfew_time: '23:59', enabled: true }));
 
@@ -139,10 +131,6 @@ describe('Curfew API', () => {
       expect(res.body.data).toHaveLength(0);
     });
 
-    /**
-     * Test: should return empty if curfew is disabled
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return empty if curfew is disabled', async () => {
       mockRedisGet.mockResolvedValueOnce(JSON.stringify({ curfew_time: '00:00', enabled: false }));
 
@@ -153,10 +141,6 @@ describe('Curfew API', () => {
   });
 
   describe('POST /api/curfew/notify', () => {
-    /**
-     * Test: should notify parents of absent students
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should notify parents of absent students', async () => {
       queryResults = [
         { data: { profiles: { full_name: 'Student 1' } }, error: null }, // student single query
@@ -170,10 +154,6 @@ describe('Curfew API', () => {
       expect(res.body.notified_count).toBe(1);
     });
 
-    /**
-     * Test: should reject invalid payload
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject invalid payload', async () => {
       const res = await request(app)
         .post('/api/v1/curfew/notify')
@@ -183,20 +163,12 @@ describe('Curfew API', () => {
   });
 
   describe('GET /api/curfew/settings', () => {
-    /**
-     * Test: should return default settings if no cache
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return default settings if no cache', async () => {
       const res = await request(app).get('/api/v1/curfew/settings');
       expect(res.status).toBe(200);
       expect(res.body.data.curfew_time).toBe('22:00');
     });
 
-    /**
-     * Test: should return cached settings
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return cached settings', async () => {
       mockRedisGet.mockResolvedValueOnce(JSON.stringify({ curfew_time: '23:00', enabled: false }));
       const res = await request(app).get('/api/v1/curfew/settings');
@@ -207,10 +179,6 @@ describe('Curfew API', () => {
   });
 
   describe('PATCH /api/curfew/settings', () => {
-    /**
-     * Test: should update curfew settings
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should update curfew settings', async () => {
       const res = await request(app)
         .patch('/api/v1/curfew/settings')

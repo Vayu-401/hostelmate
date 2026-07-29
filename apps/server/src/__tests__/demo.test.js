@@ -57,20 +57,12 @@ describe('Demo API', () => {
   });
 
   describe('POST /api/demo/send-otp', () => {
-    /**
-     * Test: should require a valid email
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should require a valid email', async () => {
       const res = await request(app).post('/api/v1/demo/send-otp').send({ email: 'invalid' });
       expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
     });
 
-    /**
-     * Test: should send otp on valid email
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should send otp on valid email', async () => {
       const res = await request(app)
         .post('/api/v1/demo/send-otp')
@@ -80,10 +72,6 @@ describe('Demo API', () => {
       expect(sendEmail).toHaveBeenCalled();
     });
 
-    /**
-     * Test: should hit IP rate limit
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should hit IP rate limit', async () => {
       redis.incr.mockResolvedValueOnce(20); // triggers MAX_OTP_REQUESTS_PER_IP
       const res = await request(app)
@@ -93,10 +81,6 @@ describe('Demo API', () => {
       expect(res.body.error).toMatch(/network/i);
     });
 
-    /**
-     * Test: should hit email rate limit
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should hit email rate limit', async () => {
       redis.incr.mockResolvedValueOnce(1); // IP limit pass
       redis.incr.mockResolvedValueOnce(10); // triggers MAX_OTP_REQUESTS_PER_EMAIL
@@ -107,10 +91,6 @@ describe('Demo API', () => {
       expect(res.body.error).toMatch(/Too many codes/i);
     });
 
-    /**
-     * Test: should handle internal errors gracefully
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should handle internal errors gracefully', async () => {
       redis.incr.mockRejectedValueOnce(new Error('Redis died'));
       // rateLimited catches the error and returns false, so it proceeds to redis.set
@@ -123,10 +103,6 @@ describe('Demo API', () => {
   });
 
   describe('POST /api/demo/verify-otp', () => {
-    /**
-     * Test: should fail with invalid email or otp length
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should fail with invalid email or otp length', async () => {
       const res = await request(app)
         .post('/api/v1/demo/verify-otp')
@@ -134,10 +110,6 @@ describe('Demo API', () => {
       expect(res.status).toBe(400);
     });
 
-    /**
-     * Test: should fail on missing redis hash
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should fail on missing redis hash', async () => {
       redis.get.mockResolvedValueOnce(null);
       const res = await request(app)
@@ -146,10 +118,6 @@ describe('Demo API', () => {
       expect(res.status).toBe(400);
     });
 
-    /**
-     * Test: should fail if too many verify attempts
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should fail if too many verify attempts', async () => {
       redis.incr.mockResolvedValueOnce(10);
       const res = await request(app)
@@ -158,10 +126,6 @@ describe('Demo API', () => {
       expect(res.status).toBe(429);
     });
 
-    /**
-     * Test: should succeed with valid otp
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should succeed with valid otp', async () => {
       redis.incr.mockResolvedValueOnce(1);
       
@@ -179,10 +143,6 @@ describe('Demo API', () => {
       expect(res.body.token).toBeDefined();
     });
 
-    /**
-     * Test: should handle internal errors gracefully
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should handle internal errors gracefully', async () => {
       redis.incr.mockRejectedValueOnce(new Error('Redis died'));
       const res = await request(app)
@@ -193,10 +153,6 @@ describe('Demo API', () => {
   });
 
   describe('POST /api/demo/submit', () => {
-    /**
-     * Test: should fail if no valid verified token exists
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should fail if no valid verified token exists', async () => {
       redis.get.mockResolvedValueOnce(null);
       const res = await request(app)
@@ -205,10 +161,6 @@ describe('Demo API', () => {
       expect(res.status).toBe(403);
     });
 
-    /**
-     * Test: should submit successfully if token matches
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should submit successfully if token matches', async () => {
       redis.get.mockResolvedValueOnce('valid-token');
       const res = await request(app)
@@ -218,10 +170,6 @@ describe('Demo API', () => {
       expect(res.body.success).toBe(true);
     });
 
-    /**
-     * Test: should handle internal errors gracefully
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should handle internal errors gracefully', async () => {
       redis.get.mockRejectedValueOnce(new Error('Redis died'));
       const res = await request(app)
@@ -230,10 +178,6 @@ describe('Demo API', () => {
       expect(res.status).toBe(500);
     });
 
-    /**
-     * Test: should skip email if no recipient is configured
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should skip email if no recipient is configured', async () => {
       redis.get.mockResolvedValueOnce('valid-token');
       const originalDemoEmail = process.env.DEMO_RECIPIENT_EMAIL;
@@ -254,19 +198,11 @@ describe('Demo API', () => {
   });
 
   describe('POST /api/demo/faq', () => {
-    /**
-     * Test: should fail with invalid inputs
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should fail with invalid inputs', async () => {
       const res = await request(app).post('/api/v1/demo/faq').send({ email: 'invalid' });
       expect(res.status).toBe(400);
     });
 
-    /**
-     * Test: should submit faq and send email
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should submit faq and send email', async () => {
       const res = await request(app).post('/api/v1/demo/faq').send({
         name: 'Tester',
@@ -277,10 +213,6 @@ describe('Demo API', () => {
       expect(sendEmail).toHaveBeenCalled();
     });
 
-    /**
-     * Test: should hit FAQ rate limit
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should hit FAQ rate limit', async () => {
       redis.incr.mockResolvedValueOnce(20);
       const res = await request(app).post('/api/v1/demo/faq').send({
@@ -291,10 +223,6 @@ describe('Demo API', () => {
       expect(res.status).toBe(429);
     });
 
-    /**
-     * Test: should handle internal errors gracefully in FAQ
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should handle internal errors gracefully in FAQ', async () => {
       redis.incr.mockRejectedValueOnce(new Error('Redis died'));
       // rateLimited catches the error and returns false, so it proceeds to sendEmail
@@ -307,10 +235,6 @@ describe('Demo API', () => {
       expect(res.status).toBe(500);
     });
 
-    /**
-     * Test: should skip FAQ email if no recipient is configured
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should skip FAQ email if no recipient is configured', async () => {
       const originalDemoEmail = process.env.DEMO_RECIPIENT_EMAIL;
       const originalGmail = process.env.GMAIL_USER;

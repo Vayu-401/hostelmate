@@ -1,8 +1,3 @@
-/**
- * @file apps/client/lib/faceRecognition.ts
- * Source code module for HostelMate faceRecognition.ts.
- */
-
 'use client';
 
 // All face-api.js imports must be dynamic because it requires browser APIs
@@ -112,7 +107,7 @@ export function isSamePerson(
 ): { match: boolean; confidence: number; distance: number } {
   const distance = bestMatchDistance(liveDescriptor, storedDescriptors);
   const confidence = Math.max(0, Math.min(100, Math.round((1 - distance / 0.6) * 100)));
-  const match = distance < 0.55;
+  const match = distance < 0.50;
   return { match, confidence, distance };
 }
 

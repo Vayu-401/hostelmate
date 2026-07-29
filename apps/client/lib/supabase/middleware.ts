@@ -1,8 +1,3 @@
-/**
- * @file apps/client/lib/supabase/middleware.ts
- * Source code module for HostelMate middleware.ts.
- */
-
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 

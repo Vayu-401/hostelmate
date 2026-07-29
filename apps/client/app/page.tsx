@@ -1,8 +1,3 @@
-/**
- * @file apps/client/app/page.tsx
- * Source code module for HostelMate page.tsx.
- */
-
 'use client'
 
 import React, { useRef, useCallback, useEffect, useState } from 'react'
@@ -1161,6 +1156,7 @@ export default function Home() {
 
       <nav className={styles.nav}>
         <div className={styles.navLogo}>
+          <div className={styles.logoDot} />
           HostelMate
           <span className={styles.logoSub}>by Nivo</span>
         </div>

@@ -4,7 +4,7 @@
   "description": "Hostel management platform by Nivo",
   "private": true,
   "scripts": {
-    "predev": "kill -9 $(lsof -ti:3000,3001) 2>/dev/null || true",
+    "predev": "node -e \"const {execSync}=require('child_process');const isWin=process.platform==='win32';[3000,3001].forEach(p=>{try{if(isWin){const pid=execSync('netstat -ano | findstr :'+p+' | findstr LISTENING',{encoding:'utf8'}).trim().split(/\\s+/).pop();if(pid&&pid!=='0')execSync('taskkill /F /PID '+pid)}else{execSync('fuser -k '+p+'/tcp',{stdio:'ignore'})}}catch{}});console.log('Ports cleared')\"",
     "dev": "turbo run dev",
     "build": "turbo run build",
     "start": "turbo run start",

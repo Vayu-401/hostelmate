@@ -1,8 +1,3 @@
-/**
- * @file apps/server/src/middleware/requestLogger.js
- * Express middleware for requestLogger request preprocessing and validation.
- */
-
 import logger from '../config/logger.js';
 
 const requestLogger = (req, res, next) => {

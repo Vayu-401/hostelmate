@@ -1,8 +1,3 @@
-/**
- * @file apps/client/app/(dashboard)/student/room-transfer/page.tsx
- * Student portal room-transfer dashboard subpage rendering status and actions.
- */
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';

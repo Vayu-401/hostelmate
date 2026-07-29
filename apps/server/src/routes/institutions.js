@@ -1,8 +1,3 @@
-/**
- * @file apps/server/src/routes/institutions.js
- * Express route handlers managing institutions operations and database queries.
- */
-
 import { Router } from 'express';
 import { searchInstitutions, institutionCount } from '../config/institutions.js';
 import { getCache, setCache } from '../config/redis.js';
@@ -11,10 +6,11 @@ import logger from '../config/logger.js';
 const router = Router();
 
 /**
- * GET /api/v1/institutions/search
- * Autocomplete query handler for the onboarding registration flows.
- * Performs lookup on static institutions list, with fallback to Hipolabs University database API.
- * Results are cached in Redis under 'inst:search:v2:...' for 24 hours.
+ * GET /api/v1/institutions/search?q=...&limit=8
+ *
+ * Public, read-only autocomplete for the demo / onboarding flows. Results are
+ * cached in Redis for a day keyed by the normalized query — institution data is
+ * effectively static, so this collapses repeat keystroke traffic.
  */
 router.get('/search', async (req, res) => {
   try {

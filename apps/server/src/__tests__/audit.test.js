@@ -81,10 +81,6 @@ describe('Audit API', () => {
   });
 
   describe('GET /api/audit', () => {
-    /**
-     * Test: should return audit logs without filters
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return audit logs without filters', async () => {
       queryResults = [{ data: [{ id: 1, action: 'login', resource: 'auth' }], error: null }];
 
@@ -93,10 +89,6 @@ describe('Audit API', () => {
       expect(res.body.data).toHaveLength(1);
     });
 
-    /**
-     * Test: should filter by resource and action
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should filter by resource and action', async () => {
       queryResults = [{ data: [{ id: 2, action: 'create', resource: 'room' }], error: null }];
 
@@ -105,10 +97,6 @@ describe('Audit API', () => {
       expect(res.body.data).toHaveLength(1);
     });
 
-    /**
-     * Test: should respect the limit and page query parameters
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should respect the limit and page query parameters', async () => {
       queryResults = [{ data: [], count: 0, error: null }];
       const res = await request(app).get('/api/v1/audit?limit=10&page=3');
@@ -116,10 +104,6 @@ describe('Audit API', () => {
       expect(supabaseMock.range).toHaveBeenCalledWith(20, 29);
     });
 
-    /**
-     * Test: should reject non-warden access
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject non-warden access', async () => {
       currentProfile = mockStudentProfile;
       const res = await request(app).get('/api/v1/audit');

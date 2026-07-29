@@ -1,8 +1,3 @@
-/**
- * @file apps/client/lib/supabase/client.ts
- * Source code module for HostelMate client.ts.
- */
-
 import { createBrowserClient } from '@supabase/ssr';
 import type { SupabaseClient } from '@supabase/supabase-js';
 

@@ -79,10 +79,6 @@ describe('Students API', () => {
   });
 
   describe('GET /api/students', () => {
-    /**
-     * Test: should return all students formatted correctly
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should return all students formatted correctly', async () => {
       queryResults = [
         {
@@ -106,10 +102,6 @@ describe('Students API', () => {
       expect(res.body.data.students[0].block_name).toBe('A');
     });
 
-    /**
-     * Test: should filter students by search query
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should filter students by search query', async () => {
       queryResults = [
         {
@@ -135,20 +127,12 @@ describe('Students API', () => {
       expect(res.body.data.students[0].id).toBe('s1');
     });
 
-    /**
-     * Test: should throw error on db failure
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should throw error on db failure', async () => {
       queryResults = [{ data: null, error: new Error('DB error') }];
       const res = await request(app).get('/api/v1/students');
       expect(res.status).toBe(500);
     });
 
-    /**
-     * Test: should reject non-warden access
-     * Verifies behaviour under correct inputs and constraints.
-     */
     it('should reject non-warden access', async () => {
       currentProfile = mockStudentProfile;
       const res = await request(app).get('/api/v1/students');

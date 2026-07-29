@@ -1,8 +1,3 @@
-/**
- * @file apps/client/app/(dashboard)/error.tsx
- * Source code module for HostelMate error.tsx.
- */
-
 'use client';
 
 import { useEffect } from 'react';

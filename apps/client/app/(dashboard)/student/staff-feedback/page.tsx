@@ -1,8 +1,3 @@
-/**
- * @file apps/client/app/(dashboard)/student/staff-feedback/page.tsx
- * Student portal staff-feedback dashboard subpage rendering status and actions.
- */
-
 'use client';
 import { Star } from 'lucide-react';
 
