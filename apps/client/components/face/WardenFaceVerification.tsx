@@ -362,7 +362,7 @@ export default function WardenFaceVerification({
           <div style={{ textAlign: 'center' }}>
             <p style={{ fontSize: '15px', fontWeight: 500, color: 'rgba(255,255,255,0.9)', margin: '0 0 6px' }}>Camera unavailable</p>
             <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, margin: 0 }}>
-              We couldn't access your camera.<br />Please connect a webcam or check your permissions.
+              We couldn&apos;t access your camera.<br />Please connect a webcam or check your permissions.
             </p>
           </div>
           <button
