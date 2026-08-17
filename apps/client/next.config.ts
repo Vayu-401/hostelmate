@@ -10,7 +10,7 @@ const cspHeader = `
     base-uri 'self';
     form-action 'self';
     frame-ancestors 'none';
-    connect-src 'self' wss: http: https:;
+    connect-src 'self' wss: ws: http: https: https://*.railway.app https://*.up.railway.app https://*.render.com https://*.fly.dev https://*.onrender.com;
     media-src 'self' blob: https://*.mux.com https://stream.mux.com;
     worker-src 'self' blob:;
 `

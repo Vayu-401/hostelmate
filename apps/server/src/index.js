@@ -69,18 +69,27 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Middleware
 app.use(helmet());
+// Allowed origins: localhost, local IPs, and the production client URL (set via CLIENT_URL env var)
+const ALLOWED_ORIGINS = [
+  process.env.CLIENT_URL, // e.g. https://hostelmate.vercel.app
+].filter(Boolean);
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (mobile apps, curl)
+      // Allow requests with no origin (mobile apps, curl, server-to-server)
       if (!origin) {return callback(null, true);}
-      // Allow localhost and local network IPs
+      // Allow localhost and local network IPs in development
       if (
         origin.includes('localhost') ||
         origin.includes('127.0.0.1') ||
         origin.match(/^https?:\/\/192\.168\.\d+\.\d+/) ||
         origin.match(/^https?:\/\/10\.\d+\.\d+\.\d+/)
       ) {
+        return callback(null, true);
+      }
+      // Allow explicitly whitelisted production origins
+      if (ALLOWED_ORIGINS.includes(origin)) {
         return callback(null, true);
       }
       callback(new Error('Not allowed by CORS'));
